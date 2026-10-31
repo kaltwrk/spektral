@@ -1,7 +1,7 @@
 # Playground comparison
 
-A development-only harness for Amber, Ferrofluid, Kinetic Array, Nixie, Prism and
-Signal. It uses the public Spektral runtime and each demo's complete render graph,
+A development-only harness for Amber, Ferrofluid, Kinetic Array, Nixie, Prism,
+Signal, Aperture and Mint. It uses the public Spektral runtime and each demo's complete render graph,
 including compute, HDR targets, bloom and presentation. It is not published.
 
 Run from the repository root:
@@ -42,7 +42,8 @@ CPU submission and browser callback scheduling, excludes the wait for animation
 frames, and is **not an isolated GPU timestamp or an FPS measurement**. Background
 work, GPU power state and scheduling can materially affect short cases. Repeat
 paired runs and inspect the A/A control before claiming a small improvement.
-Framework mount cost and interaction callbacks are not measured here; their
+Product interaction callbacks run during warmup and freeze for measured frames.
+Framework mount cost is not measured here; their
 behavior is covered by app tests and browser checks.
 
 An extra unmeasured frame copies the presented texture for comparison. Empty

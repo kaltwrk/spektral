@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { existsSync } from 'node:fs';
 const baselineDir = process.env.SPEKTRAL_BASELINE_DIR;
 const factories = {
 	amber: 'createAmberScene',
@@ -8,7 +9,9 @@ const factories = {
 	'kinetic-array': 'createKineticScene',
 	nixie: 'createNixieScene',
 	prism: 'createPrismScene',
-	signal: 'createSignalScene'
+	signal: 'createSignalScene',
+	aperture: 'createApertureScene',
+	mint: 'createMintScene'
 };
 export default defineConfig({
 	root: fileURLToPath(new URL('.', import.meta.url)),
@@ -29,13 +32,16 @@ export default defineConfig({
 			load(id) {
 				if (id !== '\0benchmark-baseline') return;
 				if (!baselineDir) return 'export const baselineFactories = {};';
-				const imports = Object.entries(factories)
+				const available = Object.entries(factories).filter(([demo]) =>
+					existsSync(resolve(baselineDir, 'demos', demo, 'material.ts'))
+				);
+				const imports = available
 					.map(
 						([demo, factory]) =>
 							`import { ${factory} } from ${JSON.stringify('/@fs' + resolve(baselineDir, 'demos', demo, 'material.ts'))};`
 					)
 					.join('\n');
-				return `${imports}\nexport const baselineFactories={${Object.entries(factories)
+				return `${imports}\nexport const baselineFactories={${available
 					.map(([demo, factory]) => `${JSON.stringify(demo)}:${factory}`)
 					.join(',')}};`;
 			}
