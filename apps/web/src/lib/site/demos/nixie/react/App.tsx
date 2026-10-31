@@ -5,14 +5,13 @@ import { createNixieScene, reportSceneError } from '../material';
 import Runtime from './runtime';
 
 export default function App() {
-	const [scene] = useState(createNixieScene);
+	const [{ material, passes, renderTargets }] = useState(createNixieScene);
 	return (
 		<FragCanvas
-			material={scene.material}
-			passes={scene.passes}
-			renderTargets={scene.renderTargets}
+			material={material}
+			passes={passes}
+			renderTargets={renderTargets}
 			renderMode="on-demand"
-			dpr={1.5}
 			maxDelta={1 / 30}
 			color={studioColor}
 			showErrorOverlay={false}

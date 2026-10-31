@@ -3,8 +3,8 @@ import {
 	PLAYGROUND_PREVIEW_SANDBOX
 } from '$lib/playground-engine/preview/protocol';
 import previewDefaultStyles from '$lib/playground-engine/preview/runtime-shell/styles.css?raw';
-import { env } from '$env/dynamic/private';
-import { dev } from '$app/environment';
+import * as env from '$app/env/private';
+import { dev } from '$app/env';
 import { isLocalPreviewParent } from '$lib/playground-engine/preview/origin';
 import type { RequestHandler } from './$types';
 

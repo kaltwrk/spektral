@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Spektral playground comparison</title>
+		<style>
+			body {
+				background: #141519;
+				color: #eee;
+				font: 14px system-ui;
+				padding: 24px;
+				margin: 0;
+			}
+			button,
+			select {
+				padding: 10px;
+				margin: 0 8px 12px 0;
+			}
+			pre {
+				white-space: pre-wrap;
+			}
+			table {
+				border-collapse: collapse;
+				font-variant-numeric: tabular-nums;
+				width: 100%;
+			}
+			td,
+			th {
+				border-bottom: 1px solid #35363b;
+				text-align: left;
+				padding: 8px;
+			}
+			#stage {
+				position: fixed;
+				left: 0;
+				top: 0;
+				opacity: 0.001;
+				pointer-events: none;
+				z-index: -1;
+			}
+			#images {
+				display: flex;
+				gap: 12px;
+			}
+			figure {
+				margin: 0;
+				flex: 1;
+				min-width: 0;
+			}
+			figure canvas {
+				width: 100%;
+				height: auto;
+			}
+			figcaption {
+				margin: 12px 0;
+			}
+			.error {
+				color: #fa9;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Playground render comparison</h1>
+		<p>
+			Public Spektral runtime, full render graph. Fixed inputs and decoded video frame; 24 warmup
+			frames (120 for the fluid), then 40 measured frames. Timing starts in the frame callback and
+			ends after GPU queue completion. It excludes the wait for requestAnimationFrame and is not an
+			isolated GPU timestamp. No changes to resolution, samples or effects.
+		</p>
+		<button id="baseline">Capture baseline</button><button id="compare">Compare current</button
+		><label
+			>Case
+			<select id="case">
+				<option value="all">All 18 cases</option>
+			</select></label
+		>
+		<p>
+			<label
+				><input type="checkbox" id="control" /> Compare reference to itself (timing control)</label
+			>
+		</p>
+		<p id="status">Ready</p>
+		<table>
+			<thead>
+				<tr>
+					<th>Case</th>
+					<th>Before ms</th>
+					<th>After ms</th>
+					<th>Change</th>
+					<th>RGB MAE / 255</th>
+					<th>Pixels Δ &gt; 2 / 255</th>
+					<th>Max Δ / 255</th>
+				</tr>
+			</thead>
+			<tbody id="rows"></tbody>
+		</table>
+		<div id="images"></div>
+		<pre id="results"></pre>
+		<div id="stage"></div>
+		<script type="module" src="./benchmark.ts"></script>
+	</body>
+</html>

@@ -1,0 +1,44 @@
+{
+	"status": "complete",
+	"results": [
+		{
+			"case": "prism/default",
+			"paired": true,
+			"control": true,
+			"before": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 2.365000009536743,
+				"p95": 5.665000021457672,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 2.8449999690055847,
+				"p95": 3.509999990463257,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": 20.295981291047195,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		}
+	]
+}

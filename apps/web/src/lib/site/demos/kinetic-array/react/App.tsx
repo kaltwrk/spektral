@@ -5,13 +5,12 @@ import { createKineticScene, reportSceneError } from '../material';
 import Runtime from './runtime';
 
 export default function App() {
-	const [scene] = useState(createKineticScene);
+	const [{ material, passes }] = useState(createKineticScene);
 	return (
 		<FragCanvas
-			material={scene.material}
-			passes={scene.passes}
+			material={material}
+			passes={passes}
 			renderMode="always"
-			dpr={1.5}
 			maxDelta={1 / 30}
 			color={studioColor}
 			showErrorOverlay={false}

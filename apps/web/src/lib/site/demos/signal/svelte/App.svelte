@@ -11,7 +11,6 @@
 	{material}
 	{passes}
 	renderMode="on-demand"
-	dpr={1.5}
 	maxDelta={1 / 30}
 	color={studioColor}
 	showErrorOverlay={false}

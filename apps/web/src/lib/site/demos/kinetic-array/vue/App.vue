@@ -12,7 +12,6 @@ const { material, passes } = createKineticScene();
 		:material="material"
 		:passes="passes"
 		render-mode="always"
-		:dpr="1.5"
 		:max-delta="1 / 30"
 		:color="studioColor"
 		:show-error-overlay="false"

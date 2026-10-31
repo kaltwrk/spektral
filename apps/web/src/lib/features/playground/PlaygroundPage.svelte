@@ -58,20 +58,21 @@
 		let disposeController: (() => void) | undefined;
 
 		void (async () => {
-			// Existing shared URLs enter through the index, then use the demo's canonical route.
+			// Resolve the index before mounting so the URL, sidebar and loaded demo agree.
 			const playgroundPages = getPlaygroundPages();
-			const linkedDemo =
-				playgroundPages.find((entry) => entry.id === demoId)?.slug === ''
-					? playgroundPages.find((entry) => entry.id === page.url.searchParams.get('demo'))
-					: undefined;
-			if (linkedDemo?.slug) {
-				const destination = new SvelteURL(page.url);
+			const entryDemo = !page.params.slug
+				? (playgroundPages.find((entry) => entry.id === page.url.searchParams.get('demo')) ??
+					playgroundPages.find((entry) => entry.id === demoId) ??
+					playgroundPages[0])
+				: undefined;
+			if (entryDemo?.slug) {
+				const destination = new SvelteURL(page.url.href);
 				destination.pathname = resolve('/[section]/[...slug]', {
 					section: page.params.section ?? 'playground',
-					slug: linkedDemo.slug
+					slug: entryDemo.slug
 				});
 				destination.searchParams.delete('demo');
-				await goto(destination, { replaceState: true });
+				await goto(destination, { replace: true });
 				return;
 			}
 			const [{ default: LoadedPlaygroundView }, { createPlaygroundController }] = await Promise.all(

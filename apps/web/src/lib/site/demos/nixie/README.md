@@ -3,7 +3,8 @@
 Six exposed tubes display local time as HH MM SS. Click a tube or the wooden base
 to switch to DD MM YY. The small physical button at the front cycles three
 brightness levels. Pointer movement turns the clock slightly; the studio camera,
-lighting and presentation remain shared with the other demos.
+lighting and presentation remain shared with the other demos. Local reflection
+cards add definition to the polished materials.
 
 ## HDR render targets and bloom
 
@@ -24,6 +25,15 @@ and releases its own references in `dispose()`.
 The final shared studio pass applies ACES Hill, sRGB encoding and stationary
 subpixel dithering. Bloom is combined before those operations, while the targets
 still contain HDR values.
+
+## Material finish
+
+The walnut uses a diffuse timber layer under a separate dielectric varnish. Its
+clearcoat has lower roughness and gentler normal variation than the grain below;
+Fresnel weighting balances the reflected and transmitted light. The coat follows
+the rounded shoulder onto the front face. It reflects the studio, a broad strip
+light and the active cathodes. Socket rims and the physical button use warm brass;
+their darker bakelite inserts keep the small metal edges distinct.
 
 ## Clock and texture lifecycle
 
@@ -55,14 +65,19 @@ local trace resolves the depth of the supports, pins and rear shield. Perforated
 mica spacers transmit tinted light according to viewing angle and sit at their
 own depth among the electrodes. Twelve feedthrough pins follow a circular layout shared
 with the socket holes. The two neon separators have their own smaller two-contact
-sockets. The hexagonal anode cage sits in front of the cathodes and
-returns along the side. Its wire normals catch studio reflections and light from
-the nearest glowing cathode segment. Its coverage is filtered against the physical pixel size.
+sockets. An analytically intersected cylindrical cage wraps around the cathodes.
+Its hexagonal pattern uses arc-length coordinates and a curved tangent frame.
+The cage's wire normals catch studio reflections and light from the nearest
+glowing cathode segment. Coverage is filtered against the physical pixel size.
+The rear metal shield is curved as well.
 
 Glass uses two refractions through the front wall, Fresnel studio reflections and
 a thicker fused stem. Reflections include the dark studio floor and backdrop,
-softboxes and a small indirect room contribution. A reflected ray at the rear
-wall can catch the active cathode; the metal hardware occludes that reflection.
+softboxes, narrow reflection cards and a small indirect room contribution. The
+cards live in world space and follow the surface normals as the clock turns. A
+reflected ray at the rear wall can catch the active cathode and the studio. This
+rear reflection is composited before the tube contents, so the metal hardware
+occludes it. The active and fading cathodes also illuminate the rear shield.
 The stem also refracts the base seen beneath the pins. This
 is a bounded realtime optical approximation, not a spectral path tracer. The
 common studio supplies the camera, lights, floor and area-light shadows.
@@ -78,3 +93,16 @@ Tube internals were studied from the front and side photographs of
 This is an original clock inspired by those constructions, rather than a replica
 of a specific historical tube or enclosure. Reference photos are not distributed
 as runtime assets.
+
+## Render cost
+
+The shader keeps two camera samples and the existing bounded traces. The cage is
+an analytic intersection. Procedural wood noise runs only before the texture set
+arrives; cold-wire lighting runs only on covered pixels, and gas emission runs
+only for lit cathodes. The material finish adds no render targets or postpasses.
+
+To measure the full render pipeline at a fixed 12:34:56, use the Nixie cases in
+[the shared playground benchmark](../../../../../scripts/playground-benchmark/README.md).
+It loads the demo textures, warms up the render graph and checks canvas readback.
+Timings cover CPU submission through GPU completion; they are not isolated GPU
+timestamps or display frame rates. Keep machine workload comparable between runs.

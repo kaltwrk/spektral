@@ -19,6 +19,8 @@ const STUDIO_RADIANCE = array<vec3f, 3>(
 // A demo supplies studio_occluder_distance(p): a conservative signed distance
 // to its object, excluding the receiving floor. The shared light geometry sets
 // shadow softness, so objects in different demos sit in the same studio.
+// Also provide studio_occluder_lower_bound(p), never greater than the detailed
+// field where positive. Return zero when no useful cheap bound is available.
 fn studio_shadow(p: vec3f, normal: vec3f, index: u32) -> f32 {
 	let offset = p + normal * 0.0015;
 	let to_light = STUDIO_LIGHTS[index] - offset;
@@ -35,7 +37,17 @@ fn studio_shadow(p: vec3f, normal: vec3f, index: u32) -> f32 {
 	var previous_travel = travel;
 	var closest_interval = vec2f(travel);
 	for (var step_index = 0u; step_index < 112u; step_index++) {
-		let distance = studio_occluder_distance(offset + direction * travel);
+		let sample_position = offset + direction * travel;
+		// A lower bound can prove that both the capped step and the current
+		// angular clearance are unchanged, without evaluating detailed geometry.
+		let bound = studio_occluder_lower_bound(sample_position);
+		if (bound >= .32 && bound >= visibility * max(travel * angular_radius, .0001)) {
+			previous_travel = travel;
+			travel += .32;
+			if (travel >= light_distance) { break; }
+			continue;
+		}
+		let distance = studio_occluder_distance(sample_position);
 		if (distance < 0.00015) { return 0.0; }
 		let step_size = min(distance, 0.32);
 		let angular_clearance = distance / max(travel * angular_radius, 0.0001);
@@ -105,9 +117,13 @@ fn studio_emitter(p: vec3f, direction: vec3f, roughness: f32, index: u32) -> f32
 	return coverage * (size.x * size.y) / ((size.x + blur * 0.35) * (size.y + blur * 0.35));
 }
 
-fn studio_environment(p: vec3f, direction: vec3f, roughness: f32) -> vec3f {
+fn studio_room(direction: vec3f) -> vec3f {
 	let hemisphere = smoothstep(-0.1, 0.65, direction.y);
-	var radiance = mix(vec3f(0.22, 0.24, 0.28), vec3f(0.58, 0.63, 0.72), hemisphere);
+	return mix(vec3f(0.22, 0.24, 0.28), vec3f(0.58, 0.63, 0.72), hemisphere);
+}
+
+fn studio_environment(p: vec3f, direction: vec3f, roughness: f32) -> vec3f {
+	var radiance = studio_room(direction);
 	for (var i = 0u; i < 3u; i++) {
 		radiance += STUDIO_RADIANCE[i] * studio_emitter(p, direction, roughness, i);
 	}

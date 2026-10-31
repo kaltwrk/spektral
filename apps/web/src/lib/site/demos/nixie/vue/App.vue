@@ -13,7 +13,6 @@ const { material, passes, renderTargets } = createNixieScene();
 		:passes="passes"
 		:render-targets="renderTargets"
 		render-mode="on-demand"
-		:dpr="1.5"
 		:max-delta="1 / 30"
 		:color="studioColor"
 		:show-error-overlay="false"

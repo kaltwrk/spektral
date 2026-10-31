@@ -5,13 +5,12 @@ import { createAmberScene, reportSceneError } from '../material';
 import Runtime from './runtime';
 
 export default function App() {
-	const [scene] = useState(createAmberScene);
+	const [{ material, passes }] = useState(createAmberScene);
 	return (
 		<FragCanvas
-			material={scene.material}
-			passes={scene.passes}
+			material={material}
+			passes={passes}
 			renderMode="on-demand"
-			dpr={1.5}
 			maxDelta={1 / 30}
 			color={studioColor}
 			showErrorOverlay={false}

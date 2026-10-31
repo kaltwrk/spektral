@@ -119,6 +119,8 @@ fn intersect_pin(ro: vec3f, rd: vec3f, cell: vec2i) -> Hit {
 	var hit = cylinder_hit(origin, rd, .0615, 0., height - .026, height - .004, 5u, index);
 	hit = closer(hit, bevel_hit(origin, rd, .0615, .0575, height - .004, height, index));
 	hit = closer(hit, bevel_hit(origin, rd, .0585, .0615, height - .029, height - .026, index));
+	// A descending ray that hits above every stem cannot see the mechanisms below.
+	if (hit.t < 100. && rd.y < 0. && origin.y + rd.y * hit.t >= height - .025) { return hit; }
 	hit = closer(hit, cylinder_hit(origin, rd, .028, 0., .294, first, 7u, index));
 	hit = closer(hit, cylinder_hit(origin, rd, .023, 0., first - .006, second, 7u, index));
 	hit = closer(hit, cylinder_hit(origin, rd, .019, 0., second - .006, height - .025, 7u, index));
@@ -256,25 +258,18 @@ fn shade(p: vec3f, rd: vec3f, hit: Hit) -> vec3f {
 	let ao = contact_occlusion(p, n);
 	let fresnel = studio_fresnel(mix(vec3f(.045), base, metal), dot(shading_normal, -rd));
 	let reflected = reflect(rd, shading_normal);
-	var environment = studio_environment(wp, reflected, roughness);
-	// Metal has almost no diffuse term. Visibility must also mask the reflected
-	// softboxes, otherwise raised pins cannot shadow their polished neighbours.
-	for (var i = 0u; i < 3u; i++) {
-		environment -= STUDIO_RADIANCE[i] * studio_emitter(wp, reflected, roughness, i) * (1. - visibility[i]);
-	}
-	let diffuse = base * (1. - metal) * (1. - fresnel) / STUDIO_PI;
-	var radiance = diffuse * studio_irradiance(wp, shading_normal, visibility) + max(environment, vec3f(0.)) * fresnel * (1. - .35 * roughness);
 	if (hit.material == 5u && n.y > .9) {
 		let center = pin_center(vec2i(i32(hit.pin % GRID_COLUMNS), i32(hit.pin / GRID_COLUMNS)));
 		let q = p.xz - center;
 		let radial = normalize(vec3f(q.x + .000001, 0., q.y));
-		// Replace the isotropic emitter reflection, retaining the room bounce.
-		var room = studio_environment(wp, reflected, roughness);
-		for (var i = 0u; i < 3u; i++) {
-			room -= STUDIO_RADIANCE[i] * studio_emitter(wp, reflected, roughness, i);
-		}
-		radiance = max(room, vec3f(0.)) * fresnel * .65 + turned_steel(wp, n, -rd, radial, base, visibility);
+		return (studio_room(reflected) * fresnel * .65 + turned_steel(wp, n, -rd, radial, base, visibility)) * ao;
 	}
+	var environment = studio_room(reflected);
+	for (var i = 0u; i < 3u; i++) {
+		environment += STUDIO_RADIANCE[i] * studio_emitter(wp, reflected, roughness, i) * visibility[i];
+	}
+	let diffuse = base * (1. - metal) * (1. - fresnel) / STUDIO_PI;
+	let radiance = diffuse * studio_irradiance(wp, shading_normal, visibility) + max(environment, vec3f(0.)) * fresnel * (1. - .35 * roughness);
 	return radiance * ao;
 }
 

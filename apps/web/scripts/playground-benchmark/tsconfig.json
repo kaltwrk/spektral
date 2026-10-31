@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"target": "ES2023",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
+		"types": ["node", "vite/client", "../../../../packages/spektral/node_modules/@webgpu/types"],
+		"skipLibCheck": true,
+		"noEmit": true,
+		"paths": {
+			"spektral": ["../../../../packages/spektral/src/lib/index.ts"]
+		}
+	},
+	"include": ["./*.ts"]
+}

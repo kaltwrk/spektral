@@ -5,13 +5,12 @@ import { createSignalScene, reportSceneError } from '../material';
 import Runtime from './runtime';
 
 export default function App() {
-	const [scene] = useState(createSignalScene);
+	const [{ material, passes }] = useState(createSignalScene);
 	return (
 		<FragCanvas
-			material={scene.material}
-			passes={scene.passes}
+			material={material}
+			passes={passes}
 			renderMode="on-demand"
-			dpr={1.5}
 			maxDelta={1 / 30}
 			color={studioColor}
 			showErrorOverlay={false}

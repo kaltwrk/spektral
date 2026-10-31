@@ -2,15 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GET } from './+server';
 
 const environment = vi.hoisted(() => ({ dev: false }));
-vi.mock('$app/environment', () => environment);
+vi.mock('$app/env', () => environment);
 afterEach(() => {
 	environment.dev = false;
 });
 
-vi.mock('$env/dynamic/private', () => ({
-	env: {
-		PLAYGROUND_PREVIEW_PARENT_ORIGINS: 'https://spektral.madebyhex.com'
-	}
+vi.mock('$app/env/private', () => ({
+	PLAYGROUND_PREVIEW_PARENT_ORIGINS: 'https://spektral.madebyhex.com'
 }));
 
 /**
