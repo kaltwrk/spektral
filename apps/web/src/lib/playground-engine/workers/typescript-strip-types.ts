@@ -172,6 +172,29 @@ const visitors: Visitors<any, { ms: MagicString }> = {
 		}
 	},
 	PropertyDefinition(node, context) {
+		if (node.declare) {
+			ts_blank_space(context, node);
+			return empty;
+		}
+		if (node.readonly) {
+			const prefix = context.state.ms.original.slice(node.start, node.key.start);
+			const match = /\breadonly\b/.exec(prefix);
+			if (match)
+				ts_blank_space(context, {
+					start: node.start + match.index,
+					end: node.start + match.index + match[0].length
+				});
+		}
+		if (node.optional || node.definite) {
+			const end = node.typeAnnotation?.start ?? node.value?.start ?? node.end;
+			const suffix = context.state.ms.original.slice(node.key.end, end);
+			const match = /[?!]/.exec(suffix);
+			if (match)
+				ts_blank_space(context, {
+					start: node.key.end + match.index,
+					end: node.key.end + match.index + 1
+				});
+		}
 		if (node.accessor) {
 			typescript_invalid_feature(node, 'accessor fields (related TSC proposal is not stage 4 yet)');
 		} else {
@@ -217,6 +240,7 @@ const visitors: Visitors<any, { ms: MagicString }> = {
 		context.visit(node.expression);
 	},
 	FunctionExpression: remove_this_param_and_optional,
+	ArrowFunctionExpression: remove_this_param_and_optional,
 	FunctionDeclaration: remove_this_param_and_optional,
 	TSDeclareFunction(node, context) {
 		ts_blank_space(context, node);
