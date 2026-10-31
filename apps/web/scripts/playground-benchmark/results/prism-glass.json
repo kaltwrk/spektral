@@ -1,0 +1,201 @@
+{
+	"referenceCommit": "1f739f229036518f0fd62ac82fcf0ee8d0e75a16",
+	"status": "complete",
+	"results": [
+		{
+			"case": "prism/default",
+			"paired": true,
+			"control": false,
+			"before": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 4.415000021457672,
+				"p95": 7.5450000166893005,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 3.9649999737739563,
+				"p95": 5.814999997615814,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -10.192526511815103,
+			"difference": {
+				"mae": 7.620907986111111,
+				"changedPercent": 11.831770833333334,
+				"max": 247
+			}
+		},
+		{
+			"case": "prism/interaction",
+			"paired": true,
+			"control": false,
+			"before": {
+				"id": "prism/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 3.115000009536743,
+				"p95": 6.269999980926514,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 1.9900000095367432,
+				"p95": 3.959999978542328,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -36.115569712865195,
+			"difference": {
+				"mae": 7.696136458333333,
+				"changedPercent": 12.738020833333334,
+				"max": 249
+			}
+		},
+		{
+			"case": "prism/portrait",
+			"paired": true,
+			"control": false,
+			"before": {
+				"id": "prism/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 2.8600000143051147,
+				"p95": 7.074999988079071,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 1.875,
+				"p95": 4.004999995231628,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -34.44055976847389,
+			"difference": {
+				"mae": 8.574115972222222,
+				"changedPercent": 13.321250000000001,
+				"max": 247
+			}
+		},
+		{
+			"case": "prism/default",
+			"paired": true,
+			"control": true,
+			"before": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 3.740000009536743,
+				"p95": 6.004999995231628,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 4.290000021457672,
+				"p95": 6.894999980926514,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": 14.705882634183599,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "prism/default",
+			"paired": true,
+			"control": false,
+			"before": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 3.699999988079071,
+				"p95": 5.6450000405311584,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 2.850000023841858,
+				"p95": 5.165000021457672,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -22.972972080427155,
+			"difference": {
+				"mae": 7.620907986111111,
+				"changedPercent": 11.831770833333334,
+				"max": 247
+			}
+		}
+	]
+}

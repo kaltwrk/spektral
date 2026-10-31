@@ -16,10 +16,11 @@ export function createPrismScene() {
 		uniforms: { uPointer: [0, 0, 0, 0] },
 		storageBuffers: {
 			beamPaths: {
-				size: 16 * 5 * 16,
+				// Five records per wavelength, plus inner/outer beam bounds.
+				size: (16 * 5 + 4) * 16,
 				type: 'array<vec4f>',
 				access: 'read-write',
-				initialData: new Float32Array(16 * 5 * 4)
+				initialData: new Float32Array((16 * 5 + 4) * 4)
 			}
 		},
 		textures: {
