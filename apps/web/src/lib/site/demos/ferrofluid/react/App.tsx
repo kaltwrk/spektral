@@ -5,13 +5,12 @@ import { createFerrofluidScene, reportSceneError } from '../material';
 import Runtime from './runtime';
 
 export default function App() {
-	const [scene] = useState(createFerrofluidScene);
+	const [{ material, passes }] = useState(createFerrofluidScene);
 	return (
 		<FragCanvas
-			material={scene.material}
-			passes={scene.passes}
+			material={material}
+			passes={passes}
 			renderMode="always"
-			dpr={1.5}
 			maxDelta={1 / 30}
 			color={studioColor}
 			showErrorOverlay={false}

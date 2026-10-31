@@ -110,6 +110,11 @@ fn exit_distance(p: vec3f, direction: vec3f) -> f32 {
 	return travel;
 }
 
+// The warped ellipsoid field is bounded below by .4 times this sphere distance.
+fn studio_occluder_lower_bound(p: vec3f) -> f32 {
+	return .4 * (length(p - CRYSTAL_CENTER) - 1.2);
+}
+
 fn studio_occluder_distance(p: vec3f) -> f32 {
 	return fracture_field(local_position(p)) * 0.80;
 }

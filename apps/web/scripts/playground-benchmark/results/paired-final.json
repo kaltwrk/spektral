@@ -1,0 +1,689 @@
+{
+	"status": "complete",
+	"results": [
+		{
+			"case": "amber/default",
+			"paired": true,
+			"before": {
+				"id": "amber/default",
+				"width": 1200,
+				"height": 800,
+				"median": 7.319999992847443,
+				"p95": 8.394999980926514,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "amber/default",
+				"width": 1200,
+				"height": 800,
+				"median": 7.629999995231628,
+				"p95": 16.810000002384186,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": 4.234972714304575,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "amber/interaction",
+			"paired": true,
+			"before": {
+				"id": "amber/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 7.055000007152557,
+				"p95": 7.625,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "amber/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 6.214999973773956,
+				"p95": 8.474999964237213,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -11.906449787767336,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "amber/portrait",
+			"paired": true,
+			"before": {
+				"id": "amber/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 5.714999973773956,
+				"p95": 11.384999990463257,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "amber/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 4.560000002384186,
+				"p95": 5.5450000166893005,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -20.20997334540765,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "ferrofluid/default",
+			"paired": true,
+			"before": {
+				"id": "ferrofluid/default",
+				"width": 1200,
+				"height": 800,
+				"median": 7.514999985694885,
+				"p95": 9.939999997615814,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "ferrofluid/default",
+				"width": 1200,
+				"height": 800,
+				"median": 7.810000002384186,
+				"p95": 16.605000019073486,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": 3.925482598148311,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "ferrofluid/interaction",
+			"paired": true,
+			"before": {
+				"id": "ferrofluid/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 6.464999973773956,
+				"p95": 14.605000019073486,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "ferrofluid/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 7.509999990463257,
+				"p95": 10.439999997615814,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": 16.163960107168872,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "ferrofluid/portrait",
+			"paired": true,
+			"before": {
+				"id": "ferrofluid/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 4.2200000286102295,
+				"p95": 5.275000035762787,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "ferrofluid/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 4.044999957084656,
+				"p95": 4.764999985694885,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -4.146921098083656,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "kinetic-array/default",
+			"paired": true,
+			"before": {
+				"id": "kinetic-array/default",
+				"width": 1200,
+				"height": 800,
+				"median": 12.094999969005585,
+				"p95": 14.15499997138977,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "kinetic-array/default",
+				"width": 1200,
+				"height": 800,
+				"median": 10.259999990463257,
+				"p95": 17.235000014305115,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -15.171558356714876,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "kinetic-array/interaction",
+			"paired": true,
+			"before": {
+				"id": "kinetic-array/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 11.884999990463257,
+				"p95": 13.194999992847443,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "kinetic-array/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 10.495000004768372,
+				"p95": 12.77999997138977,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -11.695414276905735,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "kinetic-array/portrait",
+			"paired": true,
+			"before": {
+				"id": "kinetic-array/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 10.694999992847443,
+				"p95": 12.14000004529953,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "kinetic-array/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 9.490000009536743,
+				"p95": 13.229999959468842,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -11.26694702306288,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "nixie/default",
+			"paired": true,
+			"before": {
+				"id": "nixie/default",
+				"width": 1200,
+				"height": 800,
+				"median": 11.310000002384186,
+				"p95": 20.59500002861023,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "nixie/default",
+				"width": 1200,
+				"height": 800,
+				"median": 8.439999997615814,
+				"p95": 16.774999976158142,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -25.37577368844709,
+			"difference": {
+				"mae": 0.0000017361111111111112,
+				"changedPercent": 0,
+				"max": 1
+			}
+		},
+		{
+			"case": "nixie/interaction",
+			"paired": true,
+			"before": {
+				"id": "nixie/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 10.780000030994415,
+				"p95": 14.125,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "nixie/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 8.34500002861023,
+				"p95": 10.735000014305115,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -22.588126116726603,
+			"difference": {
+				"mae": 6.944444444444445e-7,
+				"changedPercent": 0,
+				"max": 1
+			}
+		},
+		{
+			"case": "nixie/portrait",
+			"paired": true,
+			"before": {
+				"id": "nixie/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 7.435000002384186,
+				"p95": 9.264999985694885,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "nixie/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 7.114999949932098,
+				"p95": 15.819999992847443,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -4.303968424337223,
+			"difference": {
+				"mae": 0.0000020833333333333334,
+				"changedPercent": 0,
+				"max": 1
+			}
+		},
+		{
+			"case": "prism/default",
+			"paired": true,
+			"before": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 2.6950000524520874,
+				"p95": 4.394999980926514,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/default",
+				"width": 1200,
+				"height": 800,
+				"median": 3.784999966621399,
+				"p95": 8.569999992847443,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": 40.445265044709664,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "prism/interaction",
+			"paired": true,
+			"before": {
+				"id": "prism/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 2.9850000143051147,
+				"p95": 7.525000035762787,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 4.210000038146973,
+				"p95": 7.505000054836273,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": 41.038526565200996,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "prism/portrait",
+			"paired": true,
+			"before": {
+				"id": "prism/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 2.625,
+				"p95": 4.430000007152557,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "prism/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 2.625,
+				"p95": 3.6550000309944153,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": 0,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		},
+		{
+			"case": "signal/default",
+			"paired": true,
+			"before": {
+				"id": "signal/default",
+				"width": 1200,
+				"height": 800,
+				"median": 7.894999980926514,
+				"p95": 8.969999969005585,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "signal/default",
+				"width": 1200,
+				"height": 800,
+				"median": 7.2799999713897705,
+				"p95": 17.084999978542328,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -7.789740481602514,
+			"difference": {
+				"mae": 0.000021875,
+				"changedPercent": 0,
+				"max": 2
+			}
+		},
+		{
+			"case": "signal/interaction",
+			"paired": true,
+			"before": {
+				"id": "signal/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 8.02999997138977,
+				"p95": 8.349999964237213,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "signal/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 7.814999997615814,
+				"p95": 14.524999976158142,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -2.677459209713373,
+			"difference": {
+				"mae": 0.000006944444444444445,
+				"changedPercent": 0,
+				"max": 1
+			}
+		},
+		{
+			"case": "signal/portrait",
+			"paired": true,
+			"before": {
+				"id": "signal/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 6.594999969005585,
+				"p95": 13.504999995231628,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "signal/portrait",
+				"width": 600,
+				"height": 800,
+				"median": 5.419999957084656,
+				"p95": 6.905000030994415,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -17.816527936968274,
+			"difference": {
+				"mae": 0.000030555555555555554,
+				"changedPercent": 0,
+				"max": 1
+			}
+		}
+	]
+}

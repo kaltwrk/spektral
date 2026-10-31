@@ -66,9 +66,16 @@ fn bezel_distance(p: vec3f) -> f32 {
 
 // The broad-body shadow excludes small grooves and screws. Its silhouette and
 // the four feet are identical to the visible shell, keeping contact stable.
+fn studio_occluder_lower_bound(p: vec3f) -> f32 {
+	return length(p - vec3f(0., .91, 0.)) - 1.94;
+}
+
 fn studio_occluder_distance(p: vec3f) -> f32 {
 	let q = local_position(p);
-	return min(min(chassis_distance(q), bezel_distance(q)), feet_distance(q));
+	let body = min(chassis_distance(q), feet_distance(q));
+	let bezel_bound = rounded_box(q - vec3f(0., .990, .505), vec3f(.998, .833, .104), .043);
+	if (bezel_bound >= body) { return body; }
+	return min(body, bezel_distance(q));
 }
 
 // Material IDs: 1 powdercoat, 2 bezel, 3 glass, 4 rubber, 5 hardware,
@@ -97,13 +104,16 @@ fn monitor_distance(p: vec3f) -> vec2f {
 	// Machined encoder wheels sit in dark recessed sockets in the lower fascia.
 	let knob_index = select(0.0, 1.0, p.x > 0.615);
 	let knob_center = vec3f(0.495 + knob_index * 0.24, 0.310, 0.630);
-	let knob_p = p - knob_center;
-	let angle = atan2(knob_p.y, knob_p.x);
-	let flutes = cos(angle * 48.0) * 0.0011;
-	let wheel = cylinder_z(knob_p, 0.056 + flutes, 0.043) - 0.002;
-	let shaft = cylinder_z(p - vec3f(knob_center.xy, 0.562), 0.026, 0.06);
-	let knob = min(wheel, shaft);
-	if (knob < result.x) { result = vec2f(knob, 6.0); }
+	let knob_bound = rounded_box(p - vec3f(knob_center.xy, .589), vec3f(.0592, .0592, .087), 0.);
+	if (knob_bound < result.x) {
+		let knob_p = p - knob_center;
+		let angle = atan2(knob_p.y, knob_p.x);
+		let flutes = cos(angle * 48.0) * 0.0011;
+		let wheel = cylinder_z(knob_p, 0.056 + flutes, 0.043) - 0.002;
+		let shaft = cylinder_z(p - vec3f(knob_center.xy, 0.562), 0.026, 0.06);
+		let knob = min(wheel, shaft);
+		if (knob < result.x) { result = vec2f(knob, 6.0); }
+	}
 	let power = rounded_box(p - vec3f(-0.815, 0.303, 0.624), vec3f(0.039, 0.026, 0.018), 0.008);
 	if (power < result.x) { result = vec2f(power, 4.0); }
 	let lamp = cylinder_z(p - vec3f(-0.697, 0.302, 0.612), 0.009, 0.006);
@@ -151,6 +161,7 @@ fn material_noise(p: vec3f) -> f32 {
 // Deflection and beam energy are independent: the frozen image collapses with
 // the raster, then only the concentrated beam and its phosphor afterglow remain.
 fn tube_emission(uv: vec2f, pixel_span: f32) -> vec3f {
+	if (spektralUniforms.uReady <= 0.) { return vec3f(0.); }
 	let raster = spektralUniforms.uRaster;
 	let extent = max(raster.xy, vec2f(0.0005));
 	let centered = uv - 0.5;
@@ -171,6 +182,7 @@ fn tube_emission(uv: vec2f, pixel_span: f32) -> vec3f {
 	let scan_visibility = 1.0 - smoothstep(0.6, 1.5, pixel_span * 576.0 / 1.11);
 	let scan = 1.0 - scan_visibility * 0.018 * (0.5 + 0.5 * cos(uv.y * 576.0 * 6.2831853));
 	let image_light = video * 1.35 * scan * coverage.x * coverage.y * raster.z;
+	if (raster.w <= 0.) { return image_light * spektralUniforms.uReady; }
 	// A subpixel electron beam is widened to its raster footprint, preventing
 	// a vanishing/dotted line when the screen is seen at an oblique angle.
 	let beam_width = max(extent.x * 0.50, pixel.x * 0.85);

@@ -12,7 +12,6 @@ const { material, passes } = createAmberScene();
 		:material="material"
 		:passes="passes"
 		render-mode="on-demand"
-		:dpr="1.5"
 		:max-delta="1 / 30"
 		:color="studioColor"
 		:show-error-overlay="false"

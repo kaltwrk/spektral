@@ -88,6 +88,10 @@ fn kinetic_field(p: vec3f) -> f32 {
 	return min(base, array_field(p));
 }
 
+fn studio_occluder_lower_bound(p: vec3f) -> f32 {
+	return (length(p / KINETIC_SCALE - vec3f(0., .48, 0.)) - 1.84) * KINETIC_SCALE;
+}
+
 fn studio_occluder_distance(p: vec3f) -> f32 {
 	return kinetic_field(p / KINETIC_SCALE) * KINETIC_SCALE;
 }

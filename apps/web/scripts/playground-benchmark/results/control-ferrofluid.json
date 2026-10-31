@@ -1,0 +1,44 @@
+{
+	"status": "complete",
+	"results": [
+		{
+			"case": "ferrofluid/interaction",
+			"paired": true,
+			"control": true,
+			"before": {
+				"id": "ferrofluid/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 6.944999992847443,
+				"p95": 12.915000021457672,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"current": {
+				"id": "ferrofluid/interaction",
+				"width": 1200,
+				"height": 800,
+				"median": 6.75,
+				"p95": 9.3299999833107,
+				"samples": 40,
+				"adapter": {
+					"vendor": "apple",
+					"architecture": "metal-3",
+					"device": "",
+					"description": ""
+				}
+			},
+			"changePercent": -2.8077752778728593,
+			"difference": {
+				"mae": 0,
+				"changedPercent": 0,
+				"max": 0
+			}
+		}
+	]
+}

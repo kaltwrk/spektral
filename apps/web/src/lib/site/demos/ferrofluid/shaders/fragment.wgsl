@@ -81,6 +81,9 @@ fn surface_normal(p: vec3f, material: u32) -> vec3f {
 	));
 }
 
+// This textured heightfield is cheaper without a separate global-bound branch.
+fn studio_occluder_lower_bound(p: vec3f) -> f32 { return 0.; }
+
 fn studio_occluder_distance(p: vec3f) -> f32 {
 	// Match the conservative slope bound used by primary rays. The old 0.42
 	// height multiplier could march straight through a narrow magnetic spike.

@@ -31,16 +31,10 @@ fn cylinder(p: vec3f, r: f32, h: f32) -> f32 {
 }
 
 fn nearest_tube(x: f32) -> u32 {
-	var id = 0u;
-	var best = 10.0;
-	for (var i = 0u; i<6u; i++) {
-		let d = abs(x-TUBE_X[i]);
-		if (d<best) {
-			best = d;
-			id = i;
-		}
-	}
-	return id;
+	// Midpoints of the fixed, symmetric six-tube layout.
+	let side = select(2u, 3u, x > 0.);
+	let step = u32(abs(x) > .44) + u32(abs(x) > .88);
+	return select(side - step, side + step, x > 0.);
 }
 
 fn foot(p: vec3f) -> f32 {
@@ -88,6 +82,10 @@ fn base_distance(p: vec3f) -> vec2f {
 		result = vec2f(button, 3.);
 	}
 	return result;
+}
+
+fn studio_occluder_lower_bound(p: vec3f) -> f32 {
+	return length(p - vec3f(0., .5, 0.)) - 1.8;
 }
 
 fn studio_occluder_distance(p: vec3f) -> f32 {
@@ -152,52 +150,88 @@ fn tube_light(p: vec3f, n: vec3f) -> vec3f {
 	return light*spektralUniforms.uBrightness*spektralUniforms.uReady;
 }
 
+// World-space reflection cards describe the cylindrical glass and lacquer curvature.
+fn reflection_card(p: vec3f, direction: vec3f, center: vec3f, size: vec2f, roughness: f32) -> f32 {
+	let normal = normalize(vec3f(0., .62, 0.)-center);
+	let axis_x = normalize(cross(vec3f(0., 1., 0.), normal));
+	let axis_y = cross(normal, axis_x);
+	let denominator = dot(direction, normal);
+	if (denominator>=-.0001) { return 0.; }
+	let t = dot(center-p, normal)/denominator;
+	if (t<=0.) { return 0.; }
+	let q = p+direction*t-center;
+	let uv = abs(vec2f(dot(q, axis_x), dot(q, axis_y)));
+	let blur = .012+roughness*roughness*t*1.8;
+	return (1.-smoothstep(size.x-blur, size.x+blur, uv.x))
+		*(1.-smoothstep(size.y-blur, size.y+blur, uv.y))
+		*size.x/(size.x+blur*.5);
+}
+
+fn finish_reflections(p: vec3f, direction: vec3f, roughness: f32) -> vec3f {
+	let cool = reflection_card(p, direction, vec3f(-2.4, .22, 1.8), vec2f(.28, 1.4), roughness);
+	let warm = reflection_card(p, direction, vec3f(2.6, .35, 1.1), vec2f(.24, 1.5), roughness);
+	let lacquer = reflection_card(p, direction, vec3f(-3.1, 2.7, -3.8), vec2f(3.2, .09), roughness);
+	return vec3f(4.2, 4.8, 5.7)*cool+vec3f(2.9, 2.7, 2.35)*warm+vec3f(4.5, 4.2, 3.8)*lacquer;
+}
+
+fn digit_state(id: u32) -> vec3f {
+	if (id<4u) {
+		return vec3f(spektralUniforms.uDigitsA[id], spektralUniforms.uPreviousA[id], spektralUniforms.uDigitMixA[id]);
+	}
+	return vec3f(spektralUniforms.uDigitsB[id-4u], spektralUniforms.uPreviousB[id-4u], spektralUniforms.uDigitMixB[id-4u]);
+}
+
 fn shade_base(p: vec3f, n: vec3f, v: vec3f, id: f32) -> vec3f {
 	var base = vec3f(.038, .019, .010);
 	var metal = 0.;
 	var rough = .36;
+	var coat_roughness = .10;
 	var shaded_normal = n;
 	if (id==1.) {
-		let warp = noise(p*vec3f(1.5, 9., 5.))*.13+noise(p*vec3f(3., 4., 14.))*.035;
-		let grain = noise(vec3f(p.x*1.8, (p.z+warp)*115., p.y*56.));
-		let fine = noise(p*vec3f(7., 210., 250.));
-		base = mix(vec3f(.038, .017, .006), vec3f(.105, .054, .023), grain*.7+fine*.3);
-		rough = .36+fine*.09;
 		if (spektralUniforms.uWoodReady>.5) {
-			// Unwrap the rounded top/front cross-section continuously. The grain
-			// follows the same piece of timber over its softened edge.
+			// One continuous timber unwrap across the top, rounded shoulder and front.
 			let edge_angle = atan2(abs(n.z), max(n.y, .00001));
-			let across = sign(p.z) * (min(abs(p.z), .334) + .026*edge_angle + max(.179-p.y, 0.));
+			let across = sign(p.z)*(min(abs(p.z), .334)+.026*edge_angle+max(.179-p.y, 0.));
 			let wood_uv = vec2f(p.x*.31+.48, across*.46+.54);
 			let tangent = normalize(vec3f(1., 0., 0.)-n*n.x+vec3f(0., 0., .00001));
 			let bitangent = normalize(cross(tangent, n));
 			let albedo = textureSampleLevel(uWoodAlbedo, uWoodAlbedoSampler, wood_uv, 1.2).rgb;
-			base = mix(albedo, vec3f(dot(albedo, vec3f(.2126, .7152, .0722))), .10)*vec3f(.29, .255, .22);
-			rough = .29+textureSampleLevel(uWoodRoughness, uWoodRoughnessSampler, wood_uv, 1.).r*.27;
-			let map_n = textureSampleLevel(uWoodNormal, uWoodNormalSampler, wood_uv, 0.).xyz*2.-1.;
-			shaded_normal = normalize(n+tangent*map_n.x*.09+bitangent*map_n.y*.09);
+			let pores = textureSampleLevel(uWoodRoughness, uWoodRoughnessSampler, wood_uv, 1.).r;
+			base = albedo*vec3f(.37, .285, .205);
+			coat_roughness = .055+pores*.065;
+			let map_n = textureSampleLevel(uWoodNormal, uWoodNormalSampler, wood_uv, 1.).xyz*2.-1.;
+			shaded_normal = normalize(n+tangent*map_n.x*.12+bitangent*map_n.y*.12);
+		} else {
+			// Procedural grain is only evaluated while the texture set is unavailable.
+			let warp = noise(p*vec3f(1.5, 9., 5.))*.13+noise(p*vec3f(3., 4., 14.))*.035;
+			let grain = noise(vec3f(p.x*1.8, (p.z+warp)*115., p.y*56.));
+			base = mix(vec3f(.035, .014, .004), vec3f(.11, .051, .017), grain);
 		}
-	}
-	else if (id==2.) {
-		base = vec3f(.010, .009, .008);
-		rough = .35;
-	}
-	else {
-		base = vec3f(.15, .135, .11);
-		metal = .9;
-		rough = .28;
+	} else if (id==2.) {
+		base = vec3f(.014, .010, .007);
+		rough = .24;
+	} else {
+		base = vec3f(.43, .265, .095);
+		metal = .96;
+		rough = .19;
 	}
 	let wp = world(p);
 	let wn = world(shaded_normal);
-	let lit = studio_surface(wp, wn, world(v), base, metal, rough, studio_visibility(wp, wn), 1.);
-	var radiance = lit+tube_light(p, n)*base*.85;
-	if (id==1.&&n.y>.45) {
-		// The satin finish is smoother than the pores of the underlying timber.
-		let coat = studio_fresnel(vec3f(.025), dot(n, v));
-		radiance = radiance*(1.-coat)+studio_environment(wp, reflect(world(-v), world(n)), .27)*coat*.32;
-		radiance+=wood_reflection(p, v, normalize(mix(n, shaded_normal, .3)));
+	let visibility = studio_visibility(wp, wn);
+	if (id==1.) {
+		// Absorbing walnut under a separate, energy-weighted dielectric varnish.
+		let coat_normal = normalize(mix(n, shaded_normal, .28));
+		let direction = reflect(world(-v), world(coat_normal));
+		let fresnel = studio_fresnel(vec3f(.042), dot(coat_normal, v));
+		let substrate = base*(studio_irradiance(wp, wn, visibility)/STUDIO_PI+tube_light(p, n)*.85);
+		let reflected = studio_environment(wp, direction, coat_roughness)+finish_reflections(wp, direction, coat_roughness);
+		var radiance = substrate*(1.-fresnel)+reflected*fresnel;
+		if (n.y>.45) { radiance+=wood_reflection(p, v, coat_normal); }
+		return radiance;
 	}
-	return radiance;
+	let radiance = studio_surface(wp, wn, world(v), base, metal, rough, visibility, 1.);
+	let accents = finish_reflections(wp, reflect(world(-v), wn), rough);
+	return radiance+tube_light(p, n)*base*.85+accents*studio_fresnel(mix(vec3f(.045), base, metal), dot(n, v));
 }
 
 fn ellipsoid(ro: vec3f, rd: vec3f, center: vec3f, radii: vec3f) -> vec2f {
@@ -274,29 +308,27 @@ fn glyph_distance(p: vec2f, digit: u32) -> f32 {
 
 fn wood_reflection(p: vec3f, view: vec3f, n: vec3f) -> vec3f {
 	let direction = reflect(-view, n);
-	if (direction.z>=-.001||direction.y<=0.) {
-		return vec3f(0.);
-	}
-	let t = (.035-p.z)/direction.z;
-	if (t<=0.) {
-		return vec3f(0.);
-	}
-	let reflected = p+direction*t;
+	if (direction.z>=-.001||direction.y<=0.) { return vec3f(0.); }
 	var light = vec3f(0.);
 	for (var id = 0u; id<6u; id++) {
-		var digit = 0u;
-		if (id<4u) {
-			digit = u32(spektralUniforms.uDigitsA[id]);
+		let state = digit_state(id);
+		for (var phase = 0u; phase<2u; phase++) {
+			let digit = u32(select(state.y, state.x, phase==1u));
+			let energy = select(1.-state.z, state.z, phase==1u);
+			if (energy<.001) { continue; }
+			let t = (CATHODE_DEPTH[digit]-p.z)/direction.z;
+			if (t<=0.) { continue; }
+			let reflected = p+direction*t;
+			let d = glyph_distance(reflected.xy-vec2f(TUBE_X[id], .72), digit);
+			let lobe = pow(1.-smoothstep(.001, .023, d), 2.)/(1.+t*.5);
+			light+=CATHODE_RADIANCE*lobe*energy*.68;
 		}
-		else {
-			digit = u32(spektralUniforms.uDigitsB[id-4u]);
-		}
-		let d = glyph_distance(reflected.xy-vec2f(TUBE_X[id], .72), digit);
-		let lobe = pow(1.-smoothstep(.002, .039, d), 2.)/(1.+t*.8);
-		light+=vec3f(1.8, .28, .008)*lobe;
+		// The finite lacquer lobe also catches the lower end of each discharge.
+		let lower = vec3f(TUBE_X[id], .425, .025)-p;
+		let alignment = max(dot(normalize(lower), direction), 0.);
+		light+=vec3f(1.4, .22, .006)*pow(alignment, 64.)/(1.+dot(lower, lower)*3.);
 	}
-	let f = studio_fresnel(vec3f(.045), dot(n, view));
-	return light*f*spektralUniforms.uBrightness*spektralUniforms.uReady;
+	return light*studio_fresnel(vec3f(.042), dot(n, view))*spektralUniforms.uBrightness*spektralUniforms.uReady;
 }
 
 fn stroke(d: f32, r: f32, aa: f32) -> f32 {
@@ -330,16 +362,18 @@ fn cathode_illumination(p: vec3f, n: vec3f, view: vec3f, digit: u32) -> vec3f {
 	return CATHODE_RADIANCE*(.00024/(dot(delta, delta)+.00024))*(diffuse*.16+specular)*valid;
 }
 
-fn shade_mesh(p: vec3f, rd: vec3f, id: u32, side: bool, active_digit: u32, previous: u32, fade: f32) -> vec3f {
-	let uv = select(p.xy, p.zy, side);
+fn shade_mesh(p: vec3f, rd: vec3f, id: u32, active_digit: u32, previous: u32, fade: f32) -> vec3f {
+	let uv = vec2f(atan2(p.x, p.z)*.134, p.y);
 	let d = mesh_distance(uv);
 	let e = .00015;
 	let gradient = vec2f(mesh_distance(uv+vec2f(e, 0.))-mesh_distance(uv-vec2f(e, 0.)), mesh_distance(uv+vec2f(0., e))-mesh_distance(uv-vec2f(0., e)));
 	let radial = clamp(d/.0009, 0., .98);
 	let normal = vec3f(gradient/max(length(gradient), .000001)*radial, sqrt(1.-radial*radial));
-	let n = select(normal, normal.zyx, side);
+	let cage_normal = normalize(vec3f(p.x, 0., p.z));
+	let tangent = vec3f(cage_normal.z, 0., -cage_normal.x);
+	let n = tangent*normal.x+vec3f(0., normal.y, 0.)+cage_normal*normal.z;
 	let wp = world(p+vec3f(TUBE_X[id], 0., 0.));
-	let metal = studio_surface(wp, world(n), world(-rd), vec3f(.22, .235, .24), .93, .34, vec3f(.8), .31);
+	let metal = studio_surface(wp, world(n), world(-rd), vec3f(.27, .26, .22), .93, .25, vec3f(.8), .43);
 	let warm = mix(cathode_illumination(p, n, -rd, previous), cathode_illumination(p, n, -rd, active_digit), fade);
 	return metal+warm*spektralUniforms.uBrightness*spektralUniforms.uReady;
 }
@@ -347,7 +381,9 @@ fn shade_mesh(p: vec3f, rd: vec3f, id: u32, side: bool, active_digit: u32, previ
 // Trace only the hardware in the intersected bulb. It stays out of the global
 // scene march, and its nearest depth correctly occludes every cathode layer.
 fn inner_field(p: vec3f, with_mica: bool) -> vec2f {
-	var hit = vec2f(box(p-vec3f(0., .733, -.094), vec3f(.105, .302, .0018), .001), 3.);
+	// The rear shield is a bent metal sheet with a circular cross-section.
+	let shield = abs(length(p.xz-vec2f(0., .186))-.280)-.0018;
+	var hit = vec2f(max(shield, max(abs(p.x)-.105, abs(p.y-.733)-.302)), 3.);
 	let rod = cylinder(vec3f(abs(p.x)-.109, p.y-.722, p.z+.065), .0038, .315);
 	if (rod<hit.x) {
 		hit = vec2f(rod, 1.);
@@ -412,23 +448,27 @@ fn shade_inner(p: vec3f, rd: vec3f, id: u32, kind: f32) -> vec3f {
 	let wp = world(p+vec3f(TUBE_X[id], 0., 0.));
 	var base = vec3f(.26, .275, .27);
 	var metal = .85;
-	var rough = .29;
+	var rough = .20;
 	if (kind==2.) {
 		base = mix(vec3f(.050, .044, .028), vec3f(.095, .088, .058), noise(p*260.));
 		metal = 0.;
 		rough = .48;
 	}
 	if (kind==3.) {
-		base = vec3f(.019, .021, .018);
-		metal = .35;
-		rough = .43;
+		base = vec3f(.042, .036, .025);
+		metal = .78;
+		rough = .34;
 	}
 	let cavity = max(.008-inner_distance(p+n*.008), 0.)/.008;
 	let occlusion = 1.-clamp(cavity, 0., 1.)*.55;
 	let ambient = studio_surface(wp, world(n), world(-rd), base, metal, rough, vec3f(.65), .72*occlusion);
 	let d = vec3f(0., .73, .035)-p;
 	let warm = vec3f(.023, .004, .0002)*max(dot(normalize(d), n), 0.)/(dot(d, d)+.04);
-	return ambient+warm*base*spektralUniforms.uBrightness;
+	let state = digit_state(id);
+	let glyph = p.xy-vec2f(0., .72);
+	let nearby = mix(exp(-glyph_distance(glyph, u32(state.y))/.025), exp(-glyph_distance(glyph, u32(state.x))/.025), state.z);
+	let bounce = vec3f(.17, .028, .0008)*nearby*max(n.z, 0.);
+	return ambient+(warm*base+bounce)*spektralUniforms.uBrightness*spektralUniforms.uReady;
 }
 
 fn tube_contents(ro: vec3f, rd: vec3f, under: vec3f, id: u32, aa: f32) -> vec3f {
@@ -485,52 +525,49 @@ fn tube_contents(ro: vec3f, rd: vec3f, under: vec3f, id: u32, aa: f32) -> vec3f 
 			energy+=1.-fade;
 		}
 		energy*=spektralUniforms.uBrightness*spektralUniforms.uReady;
-		// Cold metal stays inside a thin orange gas sheath; other cathodes occlude it.
-		let distance_active = glyph_distance(p, active_digit);
-		let reflected_glow = exp(-distance_active/.018) * (1.-smoothstep(.025, .039, distance_active)) * spektralUniforms.uBrightness;
-		var cold_metal = vec3f(.075, .075, .064);
-		if (wire>.002) {
-			let e = .0008;
-			let gradient = vec2f(glyph_distance(p+vec2f(e, 0.), digit)-d, glyph_distance(p+vec2f(0., e), digit)-d);
-			let radial = clamp(d/.002, 0., .93);
-			let wire_n = normalize(vec3f(gradient/max(length(gradient), .00001)*radial, sqrt(1.-radial*radial)));
-			let wire_p = vec3f(p+vec2f(TUBE_X[id], .72), z);
-			cold_metal = studio_surface(world(wire_p), world(wire_n), world(-rd), vec3f(.24, .255, .25), .90, .32, vec3f(1.), .44);
+		// Shade only covered wire pixels; inactive cathodes emit no gas sheath.
+		if (wire>0.) {
+			var cold_metal = vec3f(.075, .075, .064);
+			if (wire>.002) {
+				let e = .0008;
+				let gradient = vec2f(glyph_distance(p+vec2f(e, 0.), digit)-d, glyph_distance(p+vec2f(0., e), digit)-d);
+				let radial = clamp(d/.002, 0., .93);
+				let wire_n = normalize(vec3f(gradient/max(length(gradient), .00001)*radial, sqrt(1.-radial*radial)));
+				let wire_p = vec3f(p+vec2f(TUBE_X[id], .72), z);
+				cold_metal = studio_surface(world(wire_p), world(wire_n), world(-rd), vec3f(.24, .255, .25), .90, .32, vec3f(1.), .44);
+			}
+			let distance_active = glyph_distance(p, active_digit);
+			let reflected_glow = exp(-distance_active/.018)*(1.-smoothstep(.025, .039, distance_active))*spektralUniforms.uBrightness;
+			cold_metal+=vec3f(.26, .060, .004)*reflected_glow;
+			color = mix(color, cold_metal+vec3f(.10, .023, .002)*energy, wire*.94);
 		}
-		cold_metal+=vec3f(.26, .060, .004)*reflected_glow;
-		color = mix(color, cold_metal+vec3f(.10, .023, .002)*energy, wire*.94);
-		let sheath = exp(-pow(max(d-.0014, 0.)/max(.0038, aa*.90), 2.));
-		let core = mix(.40, 1., smoothstep(.0007, .0024, d));
-		let halo = exp(-pow(d/.014, 2.));
-		color+=(CATHODE_RADIANCE*sheath*core+vec3f(.48, .068, .0015)*halo)*energy;
-	}
-	// A fine hexagonal anode cage sits in front of the layered electrodes.
-	let mesh_t = (.080-ro.z)/rd.z;
-	let mp = ro+rd*mesh_t;
-	if (mesh_t>0.&&mesh_t<hardware.x&&abs(mp.x)<.121&&mp.y>.421&&mp.y<1.035) {
-		if (!mica_applied && mesh_t < mica_t) {
-			color = color * mica_transmission + mica_light;
-			mica_applied = true;
-		}
-		let d = mesh_distance(mp.xy);
-		let resolved = stroke(d, .0009, aa*.7);
-		let fine = mix(resolved, .10, smoothstep(.002, .006, aa));
-		if (fine>.002) {
-			color = mix(color, shade_mesh(mp, rd, id, false, active_digit, previous, fade), fine*.94);
+		if (energy>0.) {
+			let sheath = exp(-pow(max(d-.0014, 0.)/max(.0038, aa*.90), 2.));
+			let core = mix(.40, 1., smoothstep(.0007, .0024, d));
+			let halo = exp(-pow(d/.014, 2.));
+			color+=(CATHODE_RADIANCE*sheath*core+vec3f(.48, .068, .0015)*halo)*energy;
 		}
 	}
-	// Side return of the same cage gives it depth when seen obliquely.
-	if (rd.x<-.001) {
-		let t = (.123-ro.x)/rd.x;
+	// Intersect the cylindrical anode cage analytically. Its arc-length UV and
+	// tangent frame make the hexagonal wirework wrap around the cathode stack.
+	let cage_a = dot(rd.xz, rd.xz);
+	let cage_b = dot(ro.xz, rd.xz);
+	let cage_h = cage_b*cage_b-cage_a*(dot(ro.xz, ro.xz)-.134*.134);
+	if (cage_h>=0. && cage_a>.00001) {
+		let t = (-cage_b-sqrt(cage_h))/cage_a;
 		let p = ro+rd*t;
-		if (t>0.&&t<hardware.x&&p.z>-.085&&p.z<.080&&p.y>.421&&p.y<1.035) {
-			if (!mica_applied && t < mica_t) {
-				color = color * mica_transmission + mica_light;
+		if (t>0. && t<hardware.x && p.y>.421 && p.y<1.035) {
+			if (!mica_applied && t<mica_t) {
+				color = color*mica_transmission+mica_light;
 				mica_applied = true;
 			}
-			let amount = stroke(mesh_distance(p.zy), .0008, aa);
-			if (amount>.002) {
-				color = mix(color, shade_mesh(p, rd, id, true, active_digit, previous, fade), amount*.94);
+			let uv = vec2f(atan2(p.x, p.z)*.134, p.y);
+			let incidence = max(abs(dot(normalize(vec3f(p.x, 0., p.z)), rd)), .15);
+			let mesh_aa = aa*.7/incidence;
+			let resolved = stroke(mesh_distance(uv), .0009, mesh_aa);
+			let fine = mix(resolved, .10, smoothstep(.002, .006, mesh_aa));
+			if (fine>.002) {
+				color = mix(color, shade_mesh(p, rd, id, active_digit, previous, fade), fine*.94);
 			}
 		}
 	}
@@ -554,13 +591,13 @@ fn glass_environment(p: vec3f, direction: vec3f, roughness: f32) -> vec3f {
 	for (var i = 0u; i<3u; i++) {
 		radiance+=STUDIO_RADIANCE[i]*studio_emitter(p, direction, roughness, i);
 	}
-	return radiance;
+	return radiance+finish_reflections(p, direction, roughness);
 }
 
-fn glass_cathode_reflection(ro: vec3f, rd: vec3f, id: u32, aa: f32) -> vec3f {
+fn glass_cathode_reflection(ro: vec3f, rd: vec3f, id: u32, aa: f32) -> vec4f {
 	let rear = glass_interval(ro, rd, .146);
 	if (rear.y<=.001 || rear.y>2.) {
-		return vec3f(0.);
+		return vec4f(0.);
 	}
 	let p = ro+rd*rear.y;
 	let n = glass_normal(p, .146);
@@ -591,7 +628,11 @@ fn glass_cathode_reflection(ro: vec3f, rd: vec3f, id: u32, aa: f32) -> vec3f {
 			reflected+=CATHODE_RADIANCE*sheath*energy;
 		}
 	}
-	return reflected*studio_fresnel(vec3f(.035), dot(n, rd))*spektralUniforms.uBrightness*spektralUniforms.uReady;
+	let fresnel = studio_fresnel(vec3f(.035), dot(n, rd));
+	let wp = world(p+vec3f(TUBE_X[id], 0., 0.));
+	let wall = glass_environment(wp, world(direction), .045);
+	let light = reflected*spektralUniforms.uBrightness*spektralUniforms.uReady;
+	return vec4f((light+wall*.78)*fresnel, fresnel.x*.78);
 }
 
 fn render_tube(ro: vec3f, rd: vec3f, under: vec3f, id: u32, opaque_t: f32) -> vec3f {
@@ -602,8 +643,9 @@ fn render_tube(ro: vec3f, rd: vec3f, under: vec3f, id: u32, opaque_t: f32) -> ve
 	}
 	let p = o+rd*range.x;
 	let base_normal = glass_normal(p, .156);
-	let glass_ripple = vec3f(noise(p*vec3f(34., 25., 28.))-.5, noise(p*vec3f(28., 31., 35.)+17.)-.5, 0.);
-	let n = normalize(base_normal+glass_ripple*.007);
+	// Low-amplitude forming marks, stable in object space, without 3D noise octaves.
+	let forming = sin(p.y*47.+f32(id)*1.7)*sin(p.y*19.+p.x*11.);
+	let n = normalize(base_normal+vec3f(forming*.0018, sin(p.y*31.+p.z*13.)*.0009, 0.));
 	let wp = world(p+vec3f(TUBE_X[id], 0., 0.));
 	let wn = world(n);
 	let glass_ray = refract(rd, n, 1./1.47);
@@ -632,23 +674,24 @@ fn render_tube(ro: vec3f, rd: vec3f, under: vec3f, id: u32, opaque_t: f32) -> ve
 	}
 	// Resolve the rear-wall ghost before compositing the front electrodes, so
 	// neither their metal nor the rear shield can acquire a see-through glow.
-	transmitted+=glass_cathode_reflection(air_origin, air_direction, id, footprint*.65);
+	let rear = glass_cathode_reflection(air_origin, air_direction, id, footprint*.65);
+	transmitted = transmitted*(1.-rear.a)+rear.rgb;
 	var contents = tube_contents(air_origin, air_direction, transmitted, id, footprint*.48);
 	let fresnel = studio_fresnel(vec3f(.035), dot(n, -rd));
-	let reflection = glass_environment(wp, reflect(world(rd), wn), .065);
+	let reflection = glass_environment(wp, reflect(world(rd), wn), .035);
 	// Both boundaries of the thin front wall contribute; keep reflection and
 	// transmission complementary rather than adding an unoccluded rear haze.
-	let wall_reflection = fresnel+(1.-fresnel)*fresnel*.55;
+	let wall_reflection = fresnel+(1.-fresnel)*fresnel*.72;
 	let wall_distance = select(.008, inner.x, inner.x>0.&&inner.x<.05);
 	let absorption = exp(-vec3f(.70, .25, .48)*wall_distance);
 	contents = contents*absorption*(1.-wall_reflection)+reflection*wall_reflection;
 	// The thick fused-glass foot has two visible rims above its black socket.
-	let foot_band = exp(-pow((p.y-.247)/.007, 2.))*.12+exp(-pow((p.y-.270)/.004, 2.))*.07;
-	contents+=vec3f(.72, .80, .86)*foot_band*.22;
+	let foot_band = exp(-pow((p.y-.247)/.007, 2.))*.24+exp(-pow((p.y-.270)/.004, 2.))*.12;
+	contents+=vec3f(.72, .80, .86)*foot_band*.36;
 	let stamp_uv = vec2f((atan2(p.x, p.z)-.45)/1.05+.5, .5-(p.y-.318)/.13);
 	if (all(stamp_uv>vec2f(0.))&&all(stamp_uv<vec2f(1.))) {
 		let ink = textureSampleLevel(uStamp, uStampSampler, stamp_uv, 0.).r;
-		contents = mix(contents, vec3f(.085, .082, .073), ink*.46*spektralUniforms.uReady);
+		contents = mix(contents, vec3f(.24, .215, .17), ink*.60*spektralUniforms.uReady);
 	}
 	return contents;
 }
