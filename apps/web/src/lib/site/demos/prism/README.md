@@ -60,3 +60,7 @@ The scene uses the shared studio camera directly, including its shorter-side
 normalization. It has no additional aspect-ratio zoom. Pointer hit projection
 and the beam pixel footprint use that same camera. Compact emitter spacing and
 a lower optical axis keep the source and floor spectrum visible at this scale.
+
+## Surface finish
+
+The projector housing includes a closed rear cap, a machined front collar and contact attenuation at the support. The five-face optical transport, clear neutral room transmission and sixteen spectral beam paths retain their existing budgets.

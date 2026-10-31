@@ -106,3 +106,7 @@ To measure the full render pipeline at a fixed 12:34:56, use the Nixie cases in
 It loads the demo textures, warms up the render graph and checks canvas readback.
 Timings cover CPU submission through GPU completion; they are not isolated GPU
 timestamps or display frame rates. Keep machine workload comparable between runs.
+
+## Surface finish
+
+Wood mip levels follow distance and viewing angle. The varnish accounts for the incoming and outgoing interface, while the thin front glass wall uses an incoherent two-interface Fresnel weight. These changes add no trace iterations, targets or bloom passes.

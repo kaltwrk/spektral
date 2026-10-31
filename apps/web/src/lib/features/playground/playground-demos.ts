@@ -1,5 +1,5 @@
 import { getPlaygroundPages } from './playground-pages';
-import { relocateDemoImports } from './playground-source-paths';
+import { collectDemoDependencies, relocateDemoImports } from './playground-source-paths';
 
 const playgroundPages = getPlaygroundPages();
 
@@ -121,9 +121,14 @@ const buildVariant = (
 	}
 
 	const additionalFiles: Record<string, string> = {};
+	const needed = collectDemoDependencies(
+		[...sourceFiles.keys()].filter((path) => path.startsWith(demoPrefix)),
+		sourceFiles
+	);
 	let appSource = '';
 	let runtimeSource: string | undefined;
 	for (const [path, source] of sourceFiles) {
+		if (!needed.has(path)) continue;
 		const relocated = relocateDemoImports(source, path, outputPaths);
 		if (path === `${demoPrefix}${appPath}`) appSource = relocated;
 		else if (path === `${demoPrefix}${runtimePath}`) runtimeSource = relocated;

@@ -49,3 +49,7 @@ Source, transformation and media-usage details are recorded beside the asset in
 `static/playground-media/signal/NOTICE.txt` and `sources.json`. The video and faceplate
 load from the public `/playground-media/signal/` path, whose CORS headers allow the
 opaque playground preview to read them.
+
+## Surface finish
+
+The faceplate attenuates the phosphor image according to the glass path length. The raster has restrained corner falloff, while housing grain is filtered against the physical pixel footprint to prevent crawling highlights during inspection.

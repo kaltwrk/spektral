@@ -181,7 +181,10 @@ fn tube_emission(uv: vec2f, pixel_span: f32) -> vec3f {
 	let coverage = vec2f(1.0) - smoothstep(extent * 0.5 - pixel, extent * 0.5 + pixel, abs(centered));
 	let scan_visibility = 1.0 - smoothstep(0.6, 1.5, pixel_span * 576.0 / 1.11);
 	let scan = 1.0 - scan_visibility * 0.018 * (0.5 + 0.5 * cos(uv.y * 576.0 * 6.2831853));
-	let image_light = video * 1.35 * scan * coverage.x * coverage.y * raster.z;
+	// Phosphor falloff is tied to the faceplate, independent of the boot raster.
+	let corner = dot(centered * vec2f(1.2, 1.), centered * vec2f(1.2, 1.));
+	let falloff = 1. - .16 * smoothstep(.08, .55, corner);
+	let image_light = video * 1.35 * scan * falloff * coverage.x * coverage.y * raster.z;
 	if (raster.w <= 0.) { return image_light * spektralUniforms.uReady; }
 	// A subpixel electron beam is widened to its raster footprint, preventing
 	// a vanishing/dotted line when the screen is seen at an oblique angle.
@@ -217,7 +220,9 @@ fn screen_color(p: vec3f, n: vec3f, view: vec3f, travel: f32) -> vec3f {
 	// Fresnel response still exposes the thickness and curvature of the glass.
 	let fresnel = studio_fresnel(vec3f(0.026), dot(n, view));
 	let ambient = vec3f(0.003, 0.0045, 0.0044);
-	return phosphor_light * (1.0 - fresnel) + reflection * fresnel * 0.75 + ambient;
+	let glass_distance = .014 / max(dot(n, view), .2);
+	let transmission = exp(-vec3f(2.4, 1.1, 1.6) * glass_distance);
+	return phosphor_light * transmission * (1.0 - fresnel) + reflection * fresnel + ambient;
 }
 
 fn shade_monitor(p: vec3f, n: vec3f, view: vec3f, material: f32, travel: f32) -> vec3f {
@@ -230,7 +235,8 @@ fn shade_monitor(p: vec3f, n: vec3f, view: vec3f, material: f32, travel: f32) ->
 	var metalness = 0.0;
 	var roughness = 0.48;
 	var occlusion = 1.0;
-	let grain = material_noise(floor(p * 1500.0));
+	let surface_pixel = 2. * travel / (STUDIO_FOCAL_LENGTH * min(spektralFrame.resolution.x, spektralFrame.resolution.y));
+	let grain = .5 + (material_noise(floor(p * 1500.0)) - .5) * exp(-pow(surface_pixel * 1500., 2.));
 	if (material == 1.0) {
 		base *= 0.97 + 0.06 * grain;
 		roughness += (grain - 0.5) * 0.025;

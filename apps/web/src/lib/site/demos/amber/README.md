@@ -42,3 +42,7 @@ Files are served from `/playground-media/obsidian/`. URLs resolve against the pr
 document's URL, since its sandbox security origin is opaque. Development middleware
 and the production `_headers` rule allow anonymous CORS requests for this public media
 directory. Source and license details are stored with the downloaded maps.
+
+## Surface finish
+
+The outer coat retains the texture's roughness range instead of clipping most texels to one value. Buried mineral remains visible off axis, while thin transmitted paths sample the actual studio floor and lose energy at the exit interface.

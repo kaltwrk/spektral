@@ -88,3 +88,7 @@ studio softboxes. Fine tooling marks fade below pixel resolution. Local pin
 geometry supplies contact occlusion and soft shadows; traversal bounding boxes
 do not contribute to the shadow silhouette. The scene uses the existing studio
 camera, floor and presentation pass.
+
+## Surface finish
+
+The pin heads and nested shafts use neutral steel reflectance. Axial polishing on the shafts and bead-blasted casing detail fade below the physical pixel footprint. The simulation and lighting cache resolutions remain unchanged.

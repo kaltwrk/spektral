@@ -133,6 +133,9 @@ fn projector_hit(ro: vec3f, rd: vec3f) -> OpticalHit {
  if(abs(velocity)>0.00001){
   let t=-axial/velocity;let p=radial+radialDirection*t;
   if(t>0.0 && dot(p,p)<0.0081){hit=optical_nearest(hit,OpticalHit(t,axis,4.0));}
+  // The projector is a closed machined housing, including its rear cap.
+  let rear=(-.32-axial)/velocity;let back=radial+radialDirection*rear;
+  if(rear>0.0 && dot(back,back)<.0081){hit=optical_nearest(hit,OpticalHit(rear,-axis,3.0));}
  }
  return hit;
 }
@@ -167,7 +170,11 @@ fn frag(uv: vec2f) -> vec4f {
  if(projector.t<limit) {
   limit=projector.t;
   let p=ray.origin+ray.direction*limit;
-  color=studio_surface(p,projector.normal,-ray.direction,vec3f(0.035,0.04,0.048),0.85,0.23,vec3f(1.0),1.0);
+  let axial=dot(p-beamPaths[0].xyz,axis);
+  let collar=1.-smoothstep(.003,.006,abs(axial+.025));
+  let metal=mix(vec3f(.035,.04,.048),vec3f(.13,.15,.17),collar);
+  let contact=.65+.35*smoothstep(.01,.065,p.y);
+  color=studio_surface(p,projector.normal,-ray.direction,metal,.85,.23,vec3f(1.),contact);
   if(projector.kind==4.0) {
    let radius=distance(p,beamPaths[0].xyz);
    if(radius<0.035){color=vec3f(5.0);}

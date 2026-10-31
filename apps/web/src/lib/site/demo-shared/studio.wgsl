@@ -2,19 +2,25 @@
 // Keep the floor, camera, emitters and linear-light response consistent across
 // demos. A scene supplies visibility and contact occlusion for its own geometry.
 const STUDIO_PI: f32 = 3.14159265359;
+// Compact overhead spots: a neutral key, cool rear rim and restrained front fill.
+const STUDIO_LIGHT_TARGET = vec3f(0.0, 0.35, 0.0);
+const STUDIO_REFLECTION_FILL: f32 = 0.70;
 const STUDIO_LIGHTS = array<vec3f, 3>(
-	vec3f(-3.4, 4.8, 1.4),
-	vec3f(2.3, 3.4, -3.0),
-	vec3f(3.4, 2.7, 3.8)
+	vec3f(-2.6, 5.4, 2.0), vec3f(-4.0, 4.6, -3.0), vec3f(3.2, 4.2, 3.6)
 );
 const STUDIO_LIGHT_SIZE = array<vec2f, 3>(
-	vec2f(2.4, 1.25), vec2f(0.45, 2.0), vec2f(2.4, 1.8)
+	vec2f(0.85, 0.55), vec2f(0.55, 0.8), vec2f(0.8, 0.7)
 );
+// Smaller emitters need higher radiance to keep the subjects illuminated.
 const STUDIO_RADIANCE = array<vec3f, 3>(
-	vec3f(10.0, 10.3, 10.7),
-	vec3f(5.2, 6.1, 7.3),
-	vec3f(2.7, 2.60, 2.45)
+	vec3f(60.0, 59.0, 56.0), vec3f(22.0, 26.0, 32.0), vec3f(16.0, 17.0, 20.0)
 );
+fn studio_spotlight(cosine: f32) -> f32 {
+	return smoothstep(0.80, 0.96, cosine);
+}
+fn studio_light_area(index: u32) -> f32 {
+	return STUDIO_PI * STUDIO_LIGHT_SIZE[index].x * STUDIO_LIGHT_SIZE[index].y;
+}
 
 // A demo supplies studio_occluder_distance(p): a conservative signed distance
 // to its object, excluding the receiving floor. The shared light geometry sets
@@ -26,11 +32,11 @@ fn studio_shadow(p: vec3f, normal: vec3f, index: u32) -> f32 {
 	let to_light = STUDIO_LIGHTS[index] - offset;
 	let light_distance = length(to_light);
 	let direction = to_light / light_distance;
-	let light_normal = normalize(vec3f(0.0, 0.18, 0.0) - STUDIO_LIGHTS[index]);
-	let projected_area = 4.0 * STUDIO_LIGHT_SIZE[index].x * STUDIO_LIGHT_SIZE[index].y
+	let light_normal = normalize(STUDIO_LIGHT_TARGET - STUDIO_LIGHTS[index]);
+	let projected_area = studio_light_area(index)
 		* abs(dot(light_normal, direction));
-	// The equivalent-area disk preserves the projected area of a finite
-	// softbox. Using the longest side made thin strips cast excessively wide cones.
+	// Preserve the projected area of the elliptical reflector rather than using
+	// its longest side, which would cast an excessively wide shadow cone.
 	let angular_radius = sqrt(projected_area / STUDIO_PI) / light_distance;
 	var travel = 0.003;
 	var visibility = 1.0;
@@ -96,11 +102,11 @@ fn studio_fresnel(f0: vec3f, cosine: f32) -> vec3f {
 	return f0 + (vec3f(1.0) - f0) * pow(1.0 - clamp(cosine, 0.0, 1.0), 5.0);
 }
 
-// A roughness-filtered reflection of finite luminous rectangles. Unlike a
+// A roughness-filtered reflection of finite elliptical reflectors. Unlike a
 // highlight painted in screen space, this responds to position and normal.
 fn studio_emitter(p: vec3f, direction: vec3f, roughness: f32, index: u32) -> f32 {
 	let center = STUDIO_LIGHTS[index];
-	let normal = normalize(vec3f(0.0, 0.18, 0.0) - center);
+	let normal = normalize(STUDIO_LIGHT_TARGET - center);
 	let axis_x = normalize(cross(vec3f(0.0, 1.0, 0.0), normal));
 	let axis_y = cross(normal, axis_x);
 	let denominator = dot(direction, normal);
@@ -111,15 +117,16 @@ fn studio_emitter(p: vec3f, direction: vec3f, roughness: f32, index: u32) -> f32
 	let uv = vec2f(dot(local, axis_x), dot(local, axis_y));
 	let size = STUDIO_LIGHT_SIZE[index];
 	let blur = 0.025 + roughness * roughness * travel * 2.5;
-	let coverage = (1.0 - smoothstep(size.x - blur, size.x + blur, abs(uv.x)))
-		* (1.0 - smoothstep(size.y - blur, size.y + blur, abs(uv.y)));
+	let edge = length(uv / size);
+	let softness = blur / min(size.x, size.y);
+	let coverage = 1.0 - smoothstep(1.0 - softness, 1.0 + softness, edge);
 	// Preserve the approximate integrated power as the lobe broadens.
-	return coverage * (size.x * size.y) / ((size.x + blur * 0.35) * (size.y + blur * 0.35));
+	return coverage * studio_spotlight(-denominator) * (size.x * size.y) / ((size.x + blur * 0.35) * (size.y + blur * 0.35));
 }
 
 fn studio_room(direction: vec3f) -> vec3f {
 	let hemisphere = smoothstep(-0.1, 0.65, direction.y);
-	return mix(vec3f(0.22, 0.24, 0.28), vec3f(0.58, 0.63, 0.72), hemisphere);
+	return mix(vec3f(0.18, 0.20, 0.24), vec3f(0.34, 0.38, 0.45), hemisphere);
 }
 
 fn studio_environment(p: vec3f, direction: vec3f, roughness: f32) -> vec3f {
@@ -131,14 +138,14 @@ fn studio_environment(p: vec3f, direction: vec3f, roughness: f32) -> vec3f {
 }
 
 fn studio_irradiance(p: vec3f, n: vec3f, visibility: vec3f) -> vec3f {
-	var irradiance = vec3f(0.55, 0.59, 0.67) * (0.65 + 0.35 * n.y);
+	var irradiance = vec3f(0.28, 0.30, 0.35) * (0.65 + 0.35 * n.y);
 	for (var i = 0u; i < 3u; i++) {
 		let delta = STUDIO_LIGHTS[i] - p;
 		let distance_squared = dot(delta, delta);
 		let direction = delta * inverseSqrt(distance_squared);
-		let area = STUDIO_LIGHT_SIZE[i].x * STUDIO_LIGHT_SIZE[i].y * 4.0;
-		let emitter_cosine = max(dot(-direction, normalize(-STUDIO_LIGHTS[i])), 0.0);
-		irradiance += STUDIO_RADIANCE[i] * max(dot(n, direction), 0.0) * emitter_cosine * area / distance_squared * visibility[i];
+		let area = studio_light_area(i);
+		let emitter_cosine = max(dot(-direction, normalize(STUDIO_LIGHT_TARGET - STUDIO_LIGHTS[i])), 0.0);
+		irradiance += STUDIO_RADIANCE[i] * max(dot(n, direction), 0.0) * emitter_cosine * studio_spotlight(emitter_cosine) * area / distance_squared * visibility[i];
 	}
 	return irradiance;
 }
@@ -148,22 +155,27 @@ fn studio_surface(p: vec3f, n: vec3f, view: vec3f, base_color: vec3f, metalness:
 	let fresnel = studio_fresnel(f0, dot(n, view));
 	let diffuse = base_color * (1.0 - metalness) * (1.0 - fresnel) / STUDIO_PI;
 	let reflection = reflect(-view, n);
-	let reflected = studio_environment(p, reflection, roughness);
+	// The same finite emitters are occluded for diffuse and specular light.
+	// Previously a hidden lamp could still appear as a full-strength reflection.
+	var reflected = studio_room(reflection);
+	for (var i = 0u; i < 3u; i++) {
+		reflected += STUDIO_RADIANCE[i] * studio_emitter(p, reflection, roughness, i) * visibility[i];
+	}
 	return (diffuse * studio_irradiance(p, n, visibility) + reflected * fresnel * (1.0 - 0.35 * roughness)) * occlusion;
 }
 
 fn studio_floor(p: vec3f, view: vec3f, visibility: vec3f, contact: f32) -> vec3f {
-	// A quiet satin floor. No animated noise, grid, horizon line or vignette.
+	// Near-black satin floor. Light pools come from the world-space spots, not a screen vignette.
 	let normal = vec3f(0.0, 1.0, 0.0);
-	let color = vec3f(0.027, 0.030, 0.035);
+	let color = vec3f(0.018, 0.020, 0.024);
 	let diffuse = color * studio_irradiance(p, normal, visibility) / STUDIO_PI;
 	// The rough charcoal floor reflects a broad, weak lobe. A polished grazing
 	// reflection here would lift the whole backdrop to grey as the fill rises.
 	let reflection = studio_environment(p, reflect(-view, normal), 0.72);
-	let specular = reflection * studio_fresnel(vec3f(0.025), dot(normal, view)) * 0.14;
+	let specular = reflection * studio_fresnel(vec3f(0.025), dot(normal, view)) * 0.10;
 	return (diffuse + specular) * contact;
 }
 
 fn studio_background(direction: vec3f) -> vec3f {
-	return mix(vec3f(0.018, 0.022, 0.029), vec3f(0.032, 0.041, 0.056), smoothstep(-0.1, 0.5, direction.y));
+	return mix(vec3f(0.010, 0.012, 0.016), vec3f(0.015, 0.018, 0.024), smoothstep(-0.1, 0.5, direction.y));
 }
