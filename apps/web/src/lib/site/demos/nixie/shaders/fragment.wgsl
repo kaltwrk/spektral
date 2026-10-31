@@ -171,7 +171,7 @@ fn finish_reflections(p: vec3f, direction: vec3f, roughness: f32) -> vec3f {
 	let cool = reflection_card(p, direction, vec3f(-2.4, .22, 1.8), vec2f(.28, 1.4), roughness);
 	let warm = reflection_card(p, direction, vec3f(2.6, .35, 1.1), vec2f(.24, 1.5), roughness);
 	let lacquer = reflection_card(p, direction, vec3f(-3.1, 2.7, -3.8), vec2f(3.2, .09), roughness);
-	return vec3f(4.2, 4.8, 5.7)*cool+vec3f(2.9, 2.7, 2.35)*warm+vec3f(4.5, 4.2, 3.8)*lacquer;
+	return STUDIO_REFLECTION_FILL*(vec3f(4.2, 4.8, 5.7)*cool+vec3f(2.9, 2.7, 2.35)*warm+vec3f(4.5, 4.2, 3.8)*lacquer);
 }
 
 fn digit_state(id: u32) -> vec3f {
@@ -195,11 +195,14 @@ fn shade_base(p: vec3f, n: vec3f, v: vec3f, id: f32) -> vec3f {
 			let wood_uv = vec2f(p.x*.31+.48, across*.46+.54);
 			let tangent = normalize(vec3f(1., 0., 0.)-n*n.x+vec3f(0., 0., .00001));
 			let bitangent = normalize(cross(tangent, n));
-			let albedo = textureSampleLevel(uWoodAlbedo, uWoodAlbedoSampler, wood_uv, 1.2).rgb;
-			let pores = textureSampleLevel(uWoodRoughness, uWoodRoughnessSampler, wood_uv, 1.).r;
+			let footprint = 2. * distance(world(p), STUDIO_CAMERA_POSITION) / (STUDIO_FOCAL_LENGTH * min(spektralFrame.resolution.x, spektralFrame.resolution.y));
+			let grazing = max(abs(dot(n, v)), .2);
+			let lod = max(log2(max(footprint * .46 * 1024. / grazing, 1.)), 0.);
+			let albedo = textureSampleLevel(uWoodAlbedo, uWoodAlbedoSampler, wood_uv, lod).rgb;
+			let pores = textureSampleLevel(uWoodRoughness, uWoodRoughnessSampler, wood_uv, lod).r;
 			base = albedo*vec3f(.37, .285, .205);
 			coat_roughness = .055+pores*.065;
-			let map_n = textureSampleLevel(uWoodNormal, uWoodNormalSampler, wood_uv, 1.).xyz*2.-1.;
+			let map_n = textureSampleLevel(uWoodNormal, uWoodNormalSampler, wood_uv, lod).xyz*2.-1.;
 			shaded_normal = normalize(n+tangent*map_n.x*.12+bitangent*map_n.y*.12);
 		} else {
 			// Procedural grain is only evaluated while the texture set is unavailable.
@@ -225,7 +228,8 @@ fn shade_base(p: vec3f, n: vec3f, v: vec3f, id: f32) -> vec3f {
 		let fresnel = studio_fresnel(vec3f(.042), dot(coat_normal, v));
 		let substrate = base*(studio_irradiance(wp, wn, visibility)/STUDIO_PI+tube_light(p, n)*.85);
 		let reflected = studio_environment(wp, direction, coat_roughness)+finish_reflections(wp, direction, coat_roughness);
-		var radiance = substrate*(1.-fresnel)+reflected*fresnel;
+		// Light crosses the varnish on entry and again on return from the wood.
+		var radiance = substrate*(1.-fresnel)*(1.-.042)+reflected*fresnel;
 		if (n.y>.45) { radiance+=wood_reflection(p, v, coat_normal); }
 		return radiance;
 	}
@@ -681,7 +685,9 @@ fn render_tube(ro: vec3f, rd: vec3f, under: vec3f, id: u32, opaque_t: f32) -> ve
 	let reflection = glass_environment(wp, reflect(world(rd), wn), .035);
 	// Both boundaries of the thin front wall contribute; keep reflection and
 	// transmission complementary rather than adding an unoccluded rear haze.
-	let wall_reflection = fresnel+(1.-fresnel)*fresnel*.72;
+	// Incoherent two-interface wall: include the weak repeated internal
+	// reflections without an extra ray trace or an arbitrary opacity multiplier.
+	let wall_reflection = 2. * fresnel / (1. + fresnel);
 	let wall_distance = select(.008, inner.x, inner.x>0.&&inner.x<.05);
 	let absorption = exp(-vec3f(.70, .25, .48)*wall_distance);
 	contents = contents*absorption*(1.-wall_reflection)+reflection*wall_reflection;

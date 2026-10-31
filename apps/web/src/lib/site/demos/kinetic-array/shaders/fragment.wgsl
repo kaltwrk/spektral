@@ -172,7 +172,7 @@ fn smith_lambda(v: vec3f, n: vec3f, radial: vec3f, tangent: vec3f) -> f32 {
 }
 
 // Lathe tooling leaves a directional reflection even when individual grooves
-// fall below a pixel. Integrate that anisotropic lobe over the shared softboxes.
+// fall below a pixel. Integrate that anisotropic lobe over the shared reflectors.
 fn turned_steel(p: vec3f, n: vec3f, view: vec3f, radial: vec3f, color: vec3f, visibility: vec3f) -> vec3f {
 	let tangent = normalize(cross(n, radial));
 	let nv = max(dot(n, view), .001);
@@ -180,12 +180,13 @@ fn turned_steel(p: vec3f, n: vec3f, view: vec3f, radial: vec3f, color: vec3f, vi
 	var radiance = vec3f(0.);
 	for (var light = 0u; light < 3u; light++) {
 		let center = STUDIO_LIGHTS[light];
-		let emitter_normal = normalize(vec3f(0., .18, 0.) - center);
+		let emitter_normal = normalize(STUDIO_LIGHT_TARGET - center);
 		let axis_x = normalize(cross(vec3f(0., 1., 0.), emitter_normal));
 		let axis_y = cross(emitter_normal, axis_x);
 		let size = STUDIO_LIGHT_SIZE[light];
 		for (var sample = 0u; sample < 4u; sample++) {
-			let offset = vec2f(select(-.57735, .57735, (sample & 1u) == 1u), select(-.57735, .57735, (sample & 2u) == 2u));
+			// Four equal-weight samples preserve the second moments of an ellipse.
+			let offset = vec2f(select(-.5, .5, (sample & 1u) == 1u), select(-.5, .5, (sample & 2u) == 2u));
 			let delta = center + axis_x * size.x * offset.x + axis_y * size.y * offset.y - p;
 			let l = normalize(delta);
 			let nl = max(dot(n, l), 0.);
@@ -194,7 +195,8 @@ fn turned_steel(p: vec3f, n: vec3f, view: vec3f, radial: vec3f, color: vec3f, vi
 			let distribution = 1. / (STUDIO_PI * .32 * .085 * pow(dot(stretched, stretched), 2.));
 			let masking = 1. / (1. + view_lambda + smith_lambda(l, n, radial, tangent));
 			let specular = studio_fresnel(color, dot(view, h)) * distribution * masking / (4. * nv * max(nl, .001));
-			let irradiance = STUDIO_RADIANCE[light] * max(dot(-l, emitter_normal), 0.) * (size.x * size.y) / dot(delta, delta);
+			let emitter_cosine = max(dot(-l, emitter_normal), 0.);
+			let irradiance = STUDIO_RADIANCE[light] * emitter_cosine * studio_spotlight(emitter_cosine) * (studio_light_area(light) * .25) / dot(delta, delta);
 			radiance += specular * irradiance * nl * visibility[light];
 		}
 	}
@@ -210,7 +212,7 @@ fn shade(p: vec3f, rd: vec3f, hit: Hit) -> vec3f {
 	let footprint = 2. * hit.t / (STUDIO_FOCAL_LENGTH * min(spektralFrame.resolution.x, spektralFrame.resolution.y));
 	if (hit.material == 1u) {
 		// Fine bead-blasting under the dark anodized finish, below pixel scale.
-		let variation = hash(floor(p * 750.));
+		let variation = .5 + (hash(floor(p * 750.)) - .5) * exp(-pow(footprint * 750., 2.));
 		base *= .94 + variation * .12;
 		roughness = .40 + variation * .035;
 	} else if (hit.material == 2u) {
@@ -230,7 +232,7 @@ fn shade(p: vec3f, rd: vec3f, hit: Hit) -> vec3f {
 		let center = pin_center(cell);
 		let q = p.xz - center;
 		let r = length(q);
-		base = vec3f(.40, .435, .46);
+		base = vec3f(.52, .54, .56);
 		metal = 1.;
 		roughness = .29;
 		if (hit.material == 5u && n.y > .9) {
@@ -243,10 +245,13 @@ fn shade(p: vec3f, rd: vec3f, hit: Hit) -> vec3f {
 			base = vec3f(.56, .59, .62);
 			roughness = .15;
 		} else if (hit.material == 7u) {
-			base = vec3f(.23, .255, .275);
-			roughness = .26;
+			base = vec3f(.40, .42, .44);
+			let polishing = sin(p.y * 2400.) * exp(-pow(footprint * 2400., 2.));
+			roughness = .23 + polishing * .018;
+			// Axial polish changes the shaft response without roughening its silhouette.
+			shading_normal = normalize(n + vec3f(0., polishing * .006, 0.));
 		} else if (hit.material == 8u) {
-			base = vec3f(.065, .073, .080);
+			base = vec3f(.12, .13, .14);
 			roughness = .38;
 		} else {
 			base = vec3f(.27, .29, .31);

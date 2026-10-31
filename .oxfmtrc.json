@@ -10,6 +10,7 @@
 	},
 	"svelte": {},
 	"ignorePatterns": [
+		"apps/web/src/lib/site/demo-shared/product/earcut.js",
 		"package-lock.json",
 		"pnpm-lock.yaml",
 		"yarn.lock",

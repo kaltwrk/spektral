@@ -147,6 +147,15 @@ async function capture(test: Case, factory?: () => Scene): Promise<Capture> {
 		(frame) => {
 			start = performance.now();
 			if (test.demo === 'ferrofluid') frame.setUniform('uStep', frozen ? 0 : 1 / 120);
+			if (!frozen && scene.interaction)
+				scene.interaction.update(
+					{ ...frame, delta: 1 / 30 },
+					{
+						uv: test.alternate ? [0.9, 0.2] : [0.5, 0.5],
+						inside: test.alternate,
+						pressed: test.alternate
+					}
+				);
 		},
 		{ autoInvalidate: false }
 	);
@@ -294,7 +303,14 @@ async function run(baseline: boolean) {
 	const results: unknown[] = [];
 	try {
 		const selected = cases.filter(
-			(test) => selection.value === 'all' || selection.value === test.id
+			(test) =>
+				selection.value === 'all' ||
+				selection.value === test.id ||
+				((selection.value === 'products' || selection.value === 'products-default') &&
+					!['amber', 'ferrofluid', 'kinetic-array', 'nixie', 'prism', 'signal'].includes(
+						test.demo
+					) &&
+					(selection.value === 'products' || test.id.endsWith('/default')))
 		);
 		for (const test of selected) {
 			status.textContent = `${baseline ? 'Baseline' : 'Comparison'}: ${test.id} (${String(results.length + 1)}/${String(selected.length)})`;

@@ -43,3 +43,7 @@ rendering because the surface keeps relaxing after pointer input stops.
 
 In the playground, shared studio sources appear under `src/shared/`. They remain
 editable alongside the demo, while repository maintenance has a single source.
+
+## Surface finish
+
+The carrier fluid uses a smooth absorbing dielectric response. The basin has filtered radial machining marks; their normal and roughness variation fade below the pixel footprint. The simulation grid and integration budget are unchanged.

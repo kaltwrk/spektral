@@ -19,6 +19,33 @@ const relativePath = (fromFile: string, toFile: string) => {
 	return path.startsWith('.') ? path : `./${path}`;
 };
 
+/** Walk local imports so unrelated demo helpers never enter the editable project. */
+export function collectDemoDependencies(
+	entries: Iterable<string>,
+	files: ReadonlyMap<string, string>
+) {
+	const needed = new Set<string>();
+	const visit = (file: string) => {
+		if (needed.has(file)) return;
+		const source = files.get(file);
+		if (source === undefined) return;
+		needed.add(file);
+		for (const match of source.matchAll(
+			/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)(['"])(\.[^'"\n]+)\1/g
+		)) {
+			const path = match[2]!.split('?')[0]!;
+			const absolute = normalizePath(`${file.slice(0, file.lastIndexOf('/'))}/${path}`);
+			const resolved = [
+				absolute,
+				...['.ts', '.tsx', '.js'].map((extension) => absolute + extension)
+			].find((candidate) => files.has(candidate));
+			if (resolved) visit(resolved);
+		}
+	};
+	for (const file of entries) visit(file);
+	return needed;
+}
+
 /** Preserve normal repository imports when framework entries move into the editor's src/. */
 export function relocateDemoImports(
 	source: string,

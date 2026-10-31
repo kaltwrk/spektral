@@ -122,13 +122,20 @@ fn render_scene(uv: vec2f) -> vec3f {
 	let visibility = visibility_at(p, n);
 	if (hit.material == 2u) {
 		let occlusion = liquid_occlusion(p);
-		return studio_surface(p, n, -ray.direction, vec3f(0.009, 0.012, 0.015), 0.12, 0.145, visibility, occlusion);
+		// The carrier liquid is an absorbing dielectric, not a dark metal.
+		// A smooth oil surface keeps neutral, crisp softbox reflections.
+		return studio_surface(p, n, -ray.direction, vec3f(0.004, 0.005, 0.006), 0.0, 0.085, visibility, occlusion);
 	}
 	let top_face = smoothstep(0.45, 0.95, n.y);
-	let roughness = mix(0.30, 0.24, top_face);
+	let footprint = 2.0 * hit.travel / (STUDIO_FOCAL_LENGTH * min(spektralFrame.resolution.x, spektralFrame.resolution.y));
+	let radius = length(p.xz);
+	let tooling = sin(radius * 2200.) * exp(-pow(footprint * 2200., 2.)) * top_face;
+	let radial = vec3f(p.x, 0., p.z) / max(radius, .0001);
+	let machined = normalize(n + radial * tooling * .008);
+	let roughness = mix(0.30, 0.21, top_face) + tooling * .012;
 	let base_color = vec3f(0.055, 0.061, 0.070);
 	let contact = 0.68 + 0.32 * smoothstep(0.0, 0.10, p.y);
-	return studio_surface(p, n, -ray.direction, base_color, 0.68, roughness, visibility, contact);
+	return studio_surface(p, machined, -ray.direction, base_color, 0.68, roughness, visibility, contact);
 }
 
 fn frag(uv: vec2f) -> vec4f {

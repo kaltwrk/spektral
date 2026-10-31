@@ -177,7 +177,7 @@ fn crystal_color(p: vec3f, ray_direction: vec3f, hit: CrystalHit, lod: f32) -> v
 	let view = -ray_direction;
 	let coat = mineral_sample(p, n, lod, 0.17);
 	let outer_n = coat.normal;
-	let roughness = clamp(0.065 + coat.roughness * 0.35, 0.065, 0.19);
+	let roughness = clamp(0.055 + coat.roughness * 0.16, 0.055, 0.215);
 	let inside = refract(ray_direction, outer_n, 1.0 / 1.48);
 	let thickness = exit_distance(p, inside);
 	let depth = mix(0.09, 0.255, spektralUniforms.uReveal);
@@ -191,11 +191,12 @@ fn crystal_color(p: vec3f, ray_direction: vec3f, hit: CrystalHit, lod: f32) -> v
 	let lighting = studio_irradiance(world_p, wn, vec3f(1.0));
 	let density = clamp(mineral.height * 0.70 + dot(mineral.color, vec3f(0.333)) * 38.0, 0.0, 1.0);
 	let mineral_tint = mix(vec3f(0.13, 0.027, 0.006), vec3f(0.70, 0.265, 0.055), density);
-	let facing = pow(max(dot(mineral.normal, view), 0.0), 2.5);
+	// Buried mineral remains visible off axis; it is not a metallic facing mask.
+	let facing = .32 + .68 * pow(max(dot(mineral.normal, view), 0.0), 1.5);
 	let absorption = vec3f(1.7, 5.8, 12.0);
 	let transmission = exp(-absorption * thickness);
 	let attenuation = exp(-absorption * layer_travel * 0.7);
-	let internal_light = mineral_tint * (lighting * 0.30 + vec3f(0.28)) * mineral.occlusion;
+	let internal_light = mineral_tint * (lighting * 0.36 + vec3f(0.12)) * mineral.occlusion;
 	let medium = vec3f(0.022, 0.003, 0.0015);
 	var buried = mix(medium, internal_light, facing) * attenuation;
 	// The transition into the thin glass shell follows actual remaining chord
@@ -204,9 +205,20 @@ fn crystal_color(p: vec3f, ray_direction: vec3f, hit: CrystalHit, lod: f32) -> v
 	let local_exit_n = fracture_normal(p + inside * thickness);
 	let exit_n = world_direction(local_exit_n);
 	let through_direction = refract(inside, -local_exit_n, 1.48);
+	let world_exit = world_direction(p + inside * thickness) + CRYSTAL_CENTER;
 	var transmitted_environment = vec3f(0.30, 0.32, 0.36);
 	if (dot(through_direction, through_direction) > 0.01) {
-		transmitted_environment = studio_environment(world_p, world_direction(through_direction), 0.25);
+		let outgoing = world_direction(through_direction);
+		// Transmission sees the actual dark support plane, not the bright room
+		// irradiance proxy used to illuminate opaque surfaces.
+		if (outgoing.y < -.001) {
+			let floor_p = world_exit - outgoing * world_exit.y / outgoing.y;
+			transmitted_environment = studio_floor(floor_p, -outgoing, vec3f(1.), 1.);
+		} else {
+			transmitted_environment = studio_environment(world_exit, outgoing, .19);
+		}
+		let exit_fresnel = studio_fresnel(vec3f(.038), dot(local_exit_n, inside));
+		transmitted_environment *= 1. - exit_fresnel;
 	} else {
 		transmitted_environment = studio_environment(world_p, world_direction(reflect(inside, -local_exit_n)), 0.22) * 0.55;
 	}

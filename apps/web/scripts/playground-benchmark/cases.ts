@@ -16,11 +16,15 @@ import { createSignalScene } from '../../src/lib/site/demos/signal/material';
 import * as amber from '../../src/lib/site/demos/amber/assets';
 import * as nixie from '../../src/lib/site/demos/nixie/assets';
 import * as signal from '../../src/lib/site/demos/signal/assets';
+import type { ProductInteraction } from '../../src/lib/site/demo-shared/product-interaction';
+import { createApertureScene } from '../../src/lib/site/demos/aperture/material';
+import { createMintScene } from '../../src/lib/site/demos/mint/material';
 
 export type Scene = {
 	material: FragMaterial;
 	passes: AnyPass[];
 	renderTargets?: RenderTargetDefinitionMap;
+	interaction?: ProductInteraction;
 };
 export const factories = {
 	amber: createAmberScene,
@@ -28,7 +32,9 @@ export const factories = {
 	'kinetic-array': createKineticScene,
 	nixie: createNixieScene,
 	prism: createPrismScene,
-	signal: createSignalScene
+	signal: createSignalScene,
+	aperture: createApertureScene,
+	mint: createMintScene
 } satisfies Record<string, () => Scene>;
 export type Demo = keyof typeof factories;
 export type Case = { id: string; demo: Demo; width: number; height: number; alternate: boolean };

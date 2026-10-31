@@ -12,7 +12,16 @@ vi.mock('./playground-pages', () => ({
 import { getPlaygroundDemoVariant } from './playground-demos';
 
 describe('shared studio in playground demos', () => {
-	for (const demoId of ['amber', 'ferrofluid', 'kinetic-array', 'nixie', 'signal', 'prism']) {
+	for (const demoId of [
+		'amber',
+		'ferrofluid',
+		'kinetic-array',
+		'nixie',
+		'signal',
+		'prism',
+		'aperture',
+		'mint'
+	]) {
 		for (const framework of ['svelte', 'react', 'vue'] as const) {
 			it(`includes a self-contained source tree for ${demoId} / ${framework}`, () => {
 				const variant = getPlaygroundDemoVariant(demoId, framework)!;
@@ -45,4 +54,16 @@ describe('shared studio in playground demos', () => {
 			});
 		}
 	}
+	it('keeps the product renderer and SVG tessellator out of existing shader demos', () => {
+		const sources = getPlaygroundDemoVariant('prism', 'svelte')!.additionalFiles;
+		expect(Object.keys(sources).some((path) => path.startsWith('shared/product/'))).toBe(false);
+	});
+	it('includes the tessellator only in demos which extrude SVG', () => {
+		expect(getPlaygroundDemoVariant('mint', 'svelte')!.additionalFiles).toHaveProperty(
+			'shared/product/earcut.js'
+		);
+		expect(getPlaygroundDemoVariant('prism', 'svelte')!.additionalFiles).not.toHaveProperty(
+			'shared/product/earcut.js'
+		);
+	});
 });

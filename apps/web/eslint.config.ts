@@ -71,6 +71,8 @@ export default defineConfig(
 	},
 	{
 		ignores: [
+			// Vendored Earcut 3.2.3 is kept byte-for-byte apart from its license header.
+			'src/lib/site/demo-shared/product/earcut.js',
 			'src/lib/playground-engine/**',
 			'src/playground-demo-shims.d.ts',
 			'src/lib/site/demos/**',
