@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 
 import { siteConfig } from '$lib/site/site';
 import { contentUiDefaults } from '$lib/site/content-ui';

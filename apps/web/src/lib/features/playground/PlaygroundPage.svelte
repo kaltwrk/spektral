@@ -66,13 +66,13 @@
 					playgroundPages[0])
 				: undefined;
 			if (entryDemo?.slug) {
-				const destination = new SvelteURL(page.url);
+				const destination = new SvelteURL(page.url.href);
 				destination.pathname = resolve('/[section]/[...slug]', {
 					section: page.params.section ?? 'playground',
 					slug: entryDemo.slug
 				});
 				destination.searchParams.delete('demo');
-				await goto(destination, { replaceState: true });
+				await goto(destination, { replace: true });
 				return;
 			}
 			const [{ default: LoadedPlaygroundView }, { createPlaygroundController }] = await Promise.all(

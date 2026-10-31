@@ -1,4 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import svelteOptions from './svelte-options.ts';
 import tailwindcss from '@tailwindcss/vite';
 import { configDefaults, defineConfig } from 'vitest/config';
 
@@ -19,7 +20,7 @@ export default defineConfig({
 				});
 			}
 		},
-		sveltekit()
+		sveltekit(svelteOptions)
 	],
 	server: {
 		// localhost and 127.0.0.1 must both reach the local preview server.

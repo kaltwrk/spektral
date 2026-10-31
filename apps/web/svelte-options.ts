@@ -4,7 +4,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { escapeSvelte, mdsvex } from 'mdsvex';
 import { createHighlighter } from 'shiki';
 import rehypeSlug from 'rehype-slug';
-import { type Config } from '@sveltejs/kit';
+import { type Config } from '@sveltejs/kit/vite';
 import type { Root, Element, Text, ElementContent } from 'hast';
 import type { Node } from 'unist';
 
@@ -161,26 +161,8 @@ const config: Config = {
 		vitePreprocess()
 	],
 
-	kit: {
-		adapter: adapter(),
-		typescript: {
-			config: (config: Record<string, string[]>) => {
-				const include = config.include;
-
-				if (include.length) {
-					const extraIncludes = ['../eslint.config.ts', '../svelte.config.ts'];
-
-					for (const extraInclude of extraIncludes) {
-						if (!include.includes(extraInclude)) {
-							include.push(extraInclude);
-						}
-					}
-				}
-
-				return config;
-			}
-		}
-	}
+	adapter: adapter(),
+	alias: { $lib: './src/lib' }
 };
 
 export default config;

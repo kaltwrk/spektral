@@ -25,7 +25,7 @@
 		<div class="grid gap-3 sm:grid-cols-2">
 			{#if previous}
 				<Card.Root size="sm" class="gap-0 bg-muted p-1">
-					<a href={resolve(previous.href as `/${string}/${string}`)} class={linkClass}>
+					<a href={resolve(previous.href.slice(1) as `${string}/${string}`)} class={linkClass}>
 						<span class="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
 							<ChevronRightIcon
 								class="rotate-180 transition-transform duration-150 group-hover:-translate-x-0.5 motion-reduce:transition-none rtl:rotate-0"
@@ -47,7 +47,7 @@
 			{#if next}
 				<Card.Root size="sm" class={cn('gap-0 bg-muted p-1', !previous && 'sm:col-start-2')}>
 					<a
-						href={resolve(next.href as `/${string}/${string}`)}
+						href={resolve(next.href.slice(1) as `${string}/${string}`)}
 						class={cn(linkClass, 'items-end text-end')}
 					>
 						<span class="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">

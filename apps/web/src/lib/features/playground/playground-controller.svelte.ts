@@ -19,9 +19,9 @@ import {
 } from '@codemirror/view';
 import { tags as t } from '@lezer/highlight';
 import { svelte as svelteLanguage } from '@replit/codemirror-lang-svelte';
-import { env as publicEnv } from '$env/dynamic/public';
+import * as publicEnv from '$app/env/public';
 import { siteConfig } from '$lib/site/site';
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { synchronizedEditorScroll } from '$lib/playground-engine/editor/scroll';
 import { resolvePreviewOrigin } from '$lib/playground-engine/preview/origin';
 import {

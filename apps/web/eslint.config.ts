@@ -13,18 +13,9 @@ import {
 	createSharedSvelteLanguageConfig,
 	createSharedSvelteRecommendedConfigs
 } from '../../scripts/eslint/shared-preset.mjs';
-import svelteConfig from './svelte.config';
+import svelteConfig from './svelte-options';
 
 const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
-const lintSvelteConfig = {
-	...svelteConfig,
-	kit: svelteConfig.kit
-		? {
-				...svelteConfig.kit,
-				typescript: undefined
-			}
-		: undefined
-};
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
@@ -40,7 +31,7 @@ export default defineConfig(
 		tsconfigRootDir: import.meta.dirname
 	}),
 	createSharedSvelteLanguageConfig({
-		svelteConfig: lintSvelteConfig,
+		svelteConfig,
 		ts,
 		tsconfigRootDir: import.meta.dirname
 	}),

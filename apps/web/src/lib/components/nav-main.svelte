@@ -34,7 +34,7 @@
 							<Sidebar.MenuButton tooltipContent={item.title} isActive={item.isActive ?? false}>
 								{#snippet child({ props })}
 									<a
-										href={resolve(item.url as `/${string}/${string}`)}
+										href={resolve(item.url.slice(1) as `${string}/${string}`)}
 										aria-current={item.isActive ? 'page' : undefined}
 										{...props}
 									>
